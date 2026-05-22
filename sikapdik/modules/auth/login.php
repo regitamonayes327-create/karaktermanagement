@@ -111,6 +111,13 @@ if (isPost()) {
                     <span>Masuk</span>
                 </button>
             </form>
+
+            <!-- Forgot Password Link -->
+            <div class="mt-4 text-center">
+                <a href="<?= BASE_URL ?>modules/auth/forgot_password.php" class="text-sm text-blue-600 hover:text-blue-800 font-medium transition">
+                    <i class="fas fa-key"></i> Lupa Password?
+                </a>
+            </div>
         </div>
 
         <!-- Footer -->
