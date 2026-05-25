@@ -41,6 +41,7 @@ if (isPost() && Security::validateCSRF()) {
         ];
         $db->insert('achievements', $data);
         Auth::logActivity('create_achievement', 'achievements', "Prestasi: {$title}");
+        NotificationHelper::onAchievementRecorded($studentId, $title, $level, $points);
         setFlash('success', 'Prestasi berhasil dicatat.');
         redirect('modules/wali_kelas/achievements.php');
     } else {

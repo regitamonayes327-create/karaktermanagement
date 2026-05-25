@@ -45,6 +45,12 @@ if (isPost() && Security::validateCSRF()) {
             $student = $db->fetch("SELECT full_name FROM students WHERE id = ?", [$studentId]);
             Auth::logActivity('input_positive', 'behavior', "Guru mapel input keteladanan: {$student['full_name']} - {$category['category_name']}");
             
+            // Send notification
+            NotificationHelper::onBehaviorRecorded($studentId, 'keteladanan', $category['category_name'], $category['points'], Auth::getFullName());
+            if ($validationMode === '1') {
+                NotificationHelper::onValidationNeeded($studentId, Auth::getFullName(), $category['category_name']);
+            }
+
             $msg = "Keteladanan berhasil dicatat. +{$category['points']} poin.";
             if ($validationMode === '1') $msg .= ' (Menunggu validasi wali kelas)';
             setFlash('success', $msg);

@@ -29,8 +29,13 @@ if (empty($qrToken)) {
     exit;
 }
 
-// Sanitize token (should be hex string only)
-if (!preg_match('/^[a-f0-9]{20,128}$/i', $qrToken)) {
+// Basic validation - token should be reasonable length alphanumeric
+if (strlen($qrToken) < 10 || strlen($qrToken) > 200) {
+    echo json_encode(['success' => false, 'message' => 'Format QR Code tidak valid. Panjang token tidak sesuai.']);
+    exit;
+}
+// Allow hex tokens (from generateToken) and any alphanumeric string
+if (!preg_match('/^[a-zA-Z0-9]+$/', $qrToken)) {
     echo json_encode(['success' => false, 'message' => 'Format QR Code tidak valid. Pastikan QR Code berasal dari SIKAPDIK.']);
     exit;
 }
@@ -115,6 +120,15 @@ try {
 
 // Log
 Auth::logActivity('scan_attendance', 'attendance', "Presensi QR: {$student['full_name']} - {$status}");
+
+// Check for repeated lateness this week
+if ($status === 'terlambat') {
+    $weekStart = date('Y-m-d', strtotime('monday this week'));
+    $lateCount = $db->count('attendances', "student_id = ? AND status = 'terlambat' AND date >= ?", [$student['id'], $weekStart]);
+    if ($lateCount >= 3) {
+        NotificationHelper::onRepeatedLateness($student['id'], $lateCount);
+    }
+}
 
 // Success response
 echo json_encode([

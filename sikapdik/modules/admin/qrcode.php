@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var qrData = [
         <?php foreach ($students as $s): ?>
         <?php if ($s['qr_token']): ?>
-        { id: '<?= $s['id'] ?>', token: '<?= htmlspecialchars($s['qr_token'], ENT_QUOTES) ?>' },
+        { id: '<?= $s['id'] ?>', token: '<?= $s['qr_token'] ?>' },
         <?php endif; ?>
         <?php endforeach; ?>
     ];

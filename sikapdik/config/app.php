@@ -15,6 +15,7 @@ require_once __DIR__ . '/../includes/Database.php';
 require_once __DIR__ . '/../includes/Security.php';
 require_once __DIR__ . '/../includes/Auth.php';
 require_once __DIR__ . '/../includes/Helpers.php';
+require_once __DIR__ . '/../includes/NotificationHelper.php';
 
 // Initialize session securely
 Security::initSession();
