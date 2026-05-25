@@ -1,10 +1,13 @@
 <?php
 /**
- * Follow-up / Tindak Lanjut Pembinaan - Wali Kelas
+ * Tindak Lanjut Pembinaan - Integrated with Behavior Records
  * SIKAPDIK
+ * 
+ * Shows all pelanggaran records automatically.
+ * Wali Kelas / Kepala Sekolah can take action or mark as "tidak perlu tindak lanjut".
  */
 require_once __DIR__ . '/../../config/app.php';
-Auth::requireRole(['wali_kelas', 'admin']);
+Auth::requireRole(['wali_kelas', 'admin', 'kepala_sekolah']);
 
 define('PAGE_TITLE', 'Tindak Lanjut');
 
@@ -13,297 +16,316 @@ $classId = $_SESSION['class_id'] ?? 0;
 $action = get('action', 'list');
 $id = (int) get('id', 0);
 
+// Handle actions
 if (isPost() && Security::validateCSRF()) {
     $formAction = post('form_action');
     
-    if ($formAction === 'add' || $formAction === 'edit') {
+    // Mark as "tidak perlu tindak lanjut"
+    if ($formAction === 'mark_no_followup') {
+        $recordId = (int) post('record_id');
+        if ($recordId) {
+            $db->update('behavior_records', ['follow_up_status' => 'tidak_perlu'], 'id = ?', [$recordId]);
+            Auth::logActivity('mark_no_followup', 'follow_ups', "Tandai tidak perlu tindak lanjut: record ID {$recordId}");
+            setFlash('success', 'Catatan ditandai tidak memerlukan tindak lanjut.');
+        }
+        redirect('modules/wali_kelas/follow_ups.php');
+    }
+    
+    // Save follow-up action
+    if ($formAction === 'add_followup') {
+        $recordId = (int) post('behavior_record_id');
         $studentId = (int) post('student_id');
-        $behaviorRecordId = (int) post('behavior_record_id') ?: null;
         $followUpType = Security::clean(post('follow_up_type'));
         $description = Security::clean(post('description'));
         $result = Security::clean(post('result'));
-        $followUpDate = Security::clean(post('follow_up_date')) ?: date('Y-m-d');
-        $status = Security::clean(post('status'));
+        $status = Security::clean(post('status')) ?: 'dalam_pemantauan';
         $parentInvolved = (int) post('parent_involved', 0);
         $showToParent = (int) post('show_to_parent', 0);
 
         $errors = [];
-        if (!$studentId) $errors[] = 'Pilih siswa.';
+        if (!$studentId) $errors[] = 'Data siswa tidak valid.';
         if (empty($followUpType)) $errors[] = 'Pilih jenis tindak lanjut.';
-        if (empty($description)) $errors[] = 'Deskripsi harus diisi.';
+        if (empty($description)) $errors[] = 'Deskripsi tindak lanjut harus diisi.';
 
         if (empty($errors)) {
-            $data = [
+            $db->insert('follow_ups', [
                 'student_id' => $studentId,
-                'behavior_record_id' => $behaviorRecordId,
+                'behavior_record_id' => $recordId ?: null,
                 'follow_up_type' => $followUpType,
                 'description' => $description,
                 'result' => $result ?: null,
-                'follow_up_date' => $followUpDate,
-                'status' => $status ?: 'belum_diproses',
+                'follow_up_date' => date('Y-m-d'),
+                'status' => $status,
                 'parent_involved' => $parentInvolved,
                 'show_to_parent' => $showToParent,
                 'created_by' => Auth::getUserId()
-            ];
+            ]);
 
-            if ($formAction === 'add') {
-                $db->insert('follow_ups', $data);
-                $student = $db->fetch("SELECT full_name FROM students WHERE id = ?", [$studentId]);
-                Auth::logActivity('create_followup', 'follow_ups', "Tindak lanjut: {$student['full_name']} - {$followUpType}");
-                NotificationHelper::onFollowUpCreated($studentId, $followUpType, Auth::getFullName(), $showToParent);
-                setFlash('success', 'Tindak lanjut berhasil disimpan.');
-            } else {
-                unset($data['created_by']);
-                $db->update('follow_ups', $data, 'id = ?', [$id]);
-                Auth::logActivity('update_followup', 'follow_ups', "Update tindak lanjut ID: {$id}");
-                setFlash('success', 'Tindak lanjut berhasil diperbarui.');
+            // Mark behavior record as followed up
+            if ($recordId) {
+                $db->update('behavior_records', ['follow_up_status' => 'ditindaklanjuti'], 'id = ?', [$recordId]);
             }
-            redirect('modules/wali_kelas/follow_ups.php');
+
+            $student = $db->fetch("SELECT full_name FROM students WHERE id = ?", [$studentId]);
+            Auth::logActivity('create_followup', 'follow_ups', "Tindak lanjut: {$student['full_name']} - {$followUpType}");
+            
+            if (class_exists('NotificationHelper')) {
+                NotificationHelper::onFollowUpCreated($studentId, $followUpType, Auth::getFullName(), $showToParent);
+            }
+
+            setFlash('success', 'Tindak lanjut berhasil disimpan.');
         } else {
             setFlash('error', implode('<br>', $errors));
         }
+        redirect('modules/wali_kelas/follow_ups.php');
     }
 }
 
 include __DIR__ . '/../../templates/header.php';
 
-if ($action === 'add' || ($action === 'edit' && $id > 0)):
-    $followUp = $action === 'edit' ? $db->fetch("SELECT * FROM follow_ups WHERE id = ?", [$id]) : null;
-    $students = $db->fetchAll("SELECT id, full_name, nis FROM students WHERE class_id = ? AND is_active = 1 ORDER BY full_name", [$classId]);
+// ============================================================
+// ACTION: Tindak Lanjuti (Form)
+// ============================================================
+if ($action === 'followup' && $id > 0):
+    $record = $db->fetch("SELECT br.*, s.full_name, s.nis, s.nisn, s.gender, c.class_name, c.grade_level,
+        bc.category_name, bc.severity, u.full_name as recorder_name
+        FROM behavior_records br
+        JOIN students s ON br.student_id = s.id
+        LEFT JOIN classes c ON s.class_id = c.id
+        JOIN behavior_categories bc ON br.category_id = bc.id
+        LEFT JOIN users u ON br.recorded_by = u.id
+        WHERE br.id = ?", [$id]);
     
-    // Get behavior records for linking (for edit mode or if student already selected)
-    $behaviorRecords = [];
-    $selectedStudentId = $followUp['student_id'] ?? (int) get('student_id', 0);
-    if ($selectedStudentId) {
-        $behaviorRecords = $db->fetchAll("SELECT br.id, br.incident_date, bc.category_name, br.type, br.points, br.description, bc.severity
-            FROM behavior_records br JOIN behavior_categories bc ON br.category_id = bc.id 
-            WHERE br.student_id = ? AND br.type = 'pelanggaran' AND br.validation_status = 'approved'
-            ORDER BY br.incident_date DESC LIMIT 30", [$selectedStudentId]);
-    }
+    if (!$record) { setFlash('error', 'Catatan tidak ditemukan.'); redirect('modules/wali_kelas/follow_ups.php'); }
 ?>
 
 <div class="max-w-2xl mx-auto">
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <div class="flex items-center justify-between mb-6">
-            <h3 class="text-lg font-semibold text-gray-800"><?= $action === 'add' ? 'Buat Tindak Lanjut' : 'Edit Tindak Lanjut' ?></h3>
-            <a href="<?= BASE_URL ?>modules/wali_kelas/follow_ups.php" class="text-sm text-gray-500 hover:text-gray-700"><i class="fas fa-arrow-left"></i> Kembali</a>
+    <!-- Detail Pelanggaran -->
+    <div class="bg-red-50 border border-red-200 rounded-xl p-5 mb-6">
+        <h4 class="text-sm font-semibold text-red-800 mb-3 flex items-center gap-2">
+            <i class="fas fa-exclamation-circle"></i> Detail Pelanggaran yang Ditindaklanjuti
+        </h4>
+        <div class="grid grid-cols-2 gap-3 text-sm">
+            <div><span class="text-red-600 font-medium">Nama:</span> <?= htmlspecialchars($record['full_name']) ?></div>
+            <div><span class="text-red-600 font-medium">NIS:</span> <?= $record['nis'] ?> <?= $record['nisn'] ? '/ NISN: ' . $record['nisn'] : '' ?></div>
+            <div><span class="text-red-600 font-medium">Kelas:</span> <?= $record['grade_level'] ?>-<?= $record['class_name'] ?></div>
+            <div><span class="text-red-600 font-medium">JK:</span> <?= $record['gender'] === 'L' ? 'Laki-laki' : 'Perempuan' ?></div>
+            <div><span class="text-red-600 font-medium">Kategori:</span> <?= htmlspecialchars($record['category_name']) ?> (<?= ucfirst($record['severity']) ?>)</div>
+            <div><span class="text-red-600 font-medium">Poin:</span> <strong><?= $record['points'] ?></strong></div>
+            <div><span class="text-red-600 font-medium">Tanggal:</span> <?= formatDate($record['incident_date'], 'full') ?></div>
+            <div><span class="text-red-600 font-medium">Dicatat oleh:</span> <?= htmlspecialchars($record['recorder_name']) ?></div>
         </div>
+        <?php if ($record['description']): ?>
+        <p class="mt-3 text-sm text-red-700 bg-red-100 rounded-lg p-2"><i class="fas fa-quote-left text-xs"></i> <?= htmlspecialchars($record['description']) ?></p>
+        <?php endif; ?>
+    </div>
+
+    <!-- Form Tindak Lanjut -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center gap-2">
+            <i class="fas fa-hands-helping text-blue-600"></i> Form Tindak Lanjut
+        </h3>
 
         <form method="POST">
             <?= Security::csrfField() ?>
-            <input type="hidden" name="form_action" value="<?= $action ?>">
-
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Siswa *</label>
-                <select name="student_id" id="studentSelect" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required onchange="loadBehaviorRecords(this.value)">
-                    <option value="">-- Pilih Siswa --</option>
-                    <?php foreach ($students as $s): ?>
-                    <option value="<?= $s['id'] ?>" <?= ($followUp['student_id'] ?? '') == $s['id'] ? 'selected' : '' ?>><?= htmlspecialchars($s['full_name']) ?> (<?= $s['nis'] ?>)</option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
-            <!-- Behavior Records for Selected Student -->
-            <div class="mb-4" id="behaviorRecordsSection" style="<?= empty($behaviorRecords) ? 'display:none' : '' ?>">
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                    <i class="fas fa-exclamation-circle text-red-500"></i> Catatan Pelanggaran Terkait
-                </label>
-                <div id="behaviorRecordsList" class="max-h-48 overflow-y-auto border border-gray-200 rounded-lg mb-2">
-                    <?php if (!empty($behaviorRecords)): ?>
-                    <?php foreach ($behaviorRecords as $br): ?>
-                    <label class="flex items-start gap-3 p-3 hover:bg-red-50 border-b border-gray-100 last:border-0 cursor-pointer">
-                        <input type="radio" name="behavior_record_id" value="<?= $br['id'] ?>" <?= ($followUp['behavior_record_id'] ?? '') == $br['id'] ? 'checked' : '' ?> class="mt-1 text-red-600 focus:ring-red-500">
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-medium text-red-600"><?= formatDate($br['incident_date'], 'short') ?></span>
-                                <span class="px-1.5 py-0.5 bg-red-100 text-red-700 rounded text-[10px] font-medium"><?= $br['points'] ?> poin</span>
-                                <span class="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px]"><?= ucfirst($br['severity']) ?></span>
-                            </div>
-                            <p class="text-sm text-gray-800 font-medium"><?= htmlspecialchars($br['category_name']) ?></p>
-                            <?php if ($br['description']): ?>
-                            <p class="text-xs text-gray-500 truncate"><?= htmlspecialchars($br['description']) ?></p>
-                            <?php endif; ?>
-                        </div>
-                    </label>
-                    <?php endforeach; ?>
-                    <?php endif; ?>
-                </div>
-                <label class="flex items-center gap-2 p-2 text-sm text-gray-500 cursor-pointer">
-                    <input type="radio" name="behavior_record_id" value="" <?= empty($followUp['behavior_record_id'] ?? '') ? 'checked' : '' ?> class="text-gray-400">
-                    <span>Tidak terkait catatan spesifik</span>
-                </label>
-                <p id="noBehaviorMsg" class="text-xs text-gray-400 italic hidden p-2">Siswa ini belum memiliki catatan pelanggaran.</p>
-            </div>
+            <input type="hidden" name="form_action" value="add_followup">
+            <input type="hidden" name="behavior_record_id" value="<?= $record['id'] ?>">
+            <input type="hidden" name="student_id" value="<?= $record['student_id'] ?>">
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Jenis Tindak Lanjut *</label>
                     <select name="follow_up_type" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
                         <option value="">-- Pilih --</option>
-                        <?php foreach (['teguran_lisan'=>'Teguran Lisan','nasihat'=>'Nasihat','mediasi'=>'Mediasi','komunikasi_ortu'=>'Komunikasi Orang Tua','pembinaan_kepsek'=>'Pembinaan Kepala Sekolah','skorsing'=>'Skorsing','lainnya'=>'Lainnya'] as $val => $label): ?>
-                        <option value="<?= $val ?>" <?= ($followUp['follow_up_type'] ?? '') === $val ? 'selected' : '' ?>><?= $label ?></option>
-                        <?php endforeach; ?>
+                        <option value="teguran_lisan">Teguran Lisan</option>
+                        <option value="nasihat">Nasihat</option>
+                        <option value="mediasi">Mediasi</option>
+                        <option value="komunikasi_ortu">Komunikasi Orang Tua</option>
+                        <option value="pembinaan_kepsek">Pembinaan Kepala Sekolah</option>
+                        <option value="skorsing">Skorsing</option>
+                        <option value="lainnya">Lainnya</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
-                    <input type="date" name="follow_up_date" value="<?= $followUp['follow_up_date'] ?? date('Y-m-d') ?>" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select name="status" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="dalam_pemantauan">Dalam Pemantauan</option>
+                        <option value="selesai">Selesai</option>
+                    </select>
                 </div>
             </div>
 
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi Pembinaan *</label>
-                <textarea name="description" rows="3" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required><?= htmlspecialchars($followUp['description'] ?? '') ?></textarea>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi Tindak Lanjut *</label>
+                <textarea name="description" rows="3" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required placeholder="Jelaskan tindakan yang dilakukan..."></textarea>
             </div>
 
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Hasil Pembinaan</label>
-                <textarea name="result" rows="2" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Hasil/respon siswa setelah pembinaan"><?= htmlspecialchars($followUp['result'] ?? '') ?></textarea>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                    <select name="status" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <option value="belum_diproses" <?= ($followUp['status'] ?? '') === 'belum_diproses' ? 'selected' : '' ?>>Belum Diproses</option>
-                        <option value="dalam_pemantauan" <?= ($followUp['status'] ?? '') === 'dalam_pemantauan' ? 'selected' : '' ?>>Dalam Pemantauan</option>
-                        <option value="selesai" <?= ($followUp['status'] ?? '') === 'selesai' ? 'selected' : '' ?>>Selesai</option>
-                    </select>
-                </div>
+                <textarea name="result" rows="2" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Respon/hasil dari siswa setelah tindak lanjut (opsional)"></textarea>
             </div>
 
             <div class="flex gap-4 mb-6">
                 <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" name="parent_involved" value="1" <?= ($followUp['parent_involved'] ?? 0) ? 'checked' : '' ?> class="rounded border-gray-300 text-blue-600">
+                    <input type="checkbox" name="parent_involved" value="1" class="rounded border-gray-300 text-blue-600">
                     <span class="text-sm text-gray-700">Melibatkan orang tua</span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" name="show_to_parent" value="1" <?= ($followUp['show_to_parent'] ?? 0) ? 'checked' : '' ?> class="rounded border-gray-300 text-blue-600">
+                    <input type="checkbox" name="show_to_parent" value="1" class="rounded border-gray-300 text-blue-600">
                     <span class="text-sm text-gray-700">Tampilkan ke orang tua</span>
                 </label>
             </div>
 
             <div class="flex gap-3">
-                <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2"><i class="fas fa-save"></i> Simpan</button>
+                <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2"><i class="fas fa-save"></i> Simpan Tindak Lanjut</button>
                 <a href="<?= BASE_URL ?>modules/wali_kelas/follow_ups.php" class="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">Batal</a>
             </div>
         </form>
     </div>
 </div>
 
-<script>
-function loadBehaviorRecords(studentId) {
-    const section = document.getElementById('behaviorRecordsSection');
-    const list = document.getElementById('behaviorRecordsList');
-    const noMsg = document.getElementById('noBehaviorMsg');
+<?php else:
+// ============================================================
+// LIST VIEW: Show all pelanggaran records needing follow-up
+// ============================================================
 
-    if (!studentId) {
-        section.style.display = 'none';
-        return;
+    $statusFilter = get('status', 'pending'); // pending, ditindaklanjuti, tidak_perlu
+
+    // Build query based on role
+    $roleWhere = '';
+    $roleParams = [];
+    if (Auth::getRole() === 'wali_kelas' && $classId) {
+        $roleWhere = " AND s.class_id = ?";
+        $roleParams[] = $classId;
     }
 
-    section.style.display = '';
-    list.innerHTML = '<div class="p-4 text-center text-sm text-gray-400"><i class="fas fa-spinner fa-spin"></i> Memuat catatan pelanggaran...</div>';
-    noMsg.classList.add('hidden');
+    // Filter
+    $followUpWhere = '';
+    if ($statusFilter === 'pending') {
+        $followUpWhere = " AND (br.follow_up_status IS NULL OR br.follow_up_status = '')";
+    } elseif ($statusFilter === 'ditindaklanjuti') {
+        $followUpWhere = " AND br.follow_up_status = 'ditindaklanjuti'";
+    } elseif ($statusFilter === 'tidak_perlu') {
+        $followUpWhere = " AND br.follow_up_status = 'tidak_perlu'";
+    }
 
-    fetch('<?= BASE_URL ?>modules/wali_kelas/get_behavior_records.php?student_id=' + studentId)
-    .then(r => r.json())
-    .then(data => {
-        if (!data.length) {
-            list.innerHTML = '';
-            noMsg.classList.remove('hidden');
-            return;
-        }
-        noMsg.classList.add('hidden');
-        list.innerHTML = data.map(r => `
-            <label class="flex items-start gap-3 p-3 hover:bg-red-50 border-b border-gray-100 last:border-0 cursor-pointer">
-                <input type="radio" name="behavior_record_id" value="${r.id}" class="mt-1 text-red-600 focus:ring-red-500">
-                <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs font-medium text-red-600">${r.date}</span>
-                        <span class="px-1.5 py-0.5 bg-red-100 text-red-700 rounded text-[10px] font-medium">${r.points} poin</span>
-                        <span class="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px]">${r.severity}</span>
-                    </div>
-                    <p class="text-sm text-gray-800 font-medium">${r.category}</p>
-                    ${r.description ? '<p class="text-xs text-gray-500 truncate">' + r.description + '</p>' : ''}
-                </div>
-            </label>
-        `).join('') + `
-            <label class="flex items-center gap-2 p-3 text-sm text-gray-500 cursor-pointer border-t border-gray-100">
-                <input type="radio" name="behavior_record_id" value="" checked class="text-gray-400">
-                <span>Tidak terkait catatan spesifik</span>
-            </label>
-        `;
-    })
-    .catch(() => {
-        list.innerHTML = '<p class="p-3 text-xs text-red-500">Gagal memuat data.</p>';
-    });
-}
+    $records = $db->fetchAll("SELECT br.*, s.full_name, s.nis, s.nisn, s.gender, c.class_name, c.grade_level,
+        bc.category_name, bc.severity, u.full_name as recorder_name
+        FROM behavior_records br
+        JOIN students s ON br.student_id = s.id
+        LEFT JOIN classes c ON s.class_id = c.id
+        JOIN behavior_categories bc ON br.category_id = bc.id
+        LEFT JOIN users u ON br.recorded_by = u.id
+        WHERE br.type = 'pelanggaran' AND br.validation_status = 'approved'
+        {$roleWhere} {$followUpWhere}
+        ORDER BY br.incident_date DESC, br.created_at DESC
+        LIMIT 100", $roleParams);
 
-// Auto-load if student already selected (edit mode)
-document.addEventListener('DOMContentLoaded', function() {
-    const sel = document.getElementById('studentSelect');
-    if (sel && sel.value) loadBehaviorRecords(sel.value);
-});
-</script>
-
-<?php else:
-    $statusFilter = get('status');
-    $where = "s.class_id = ?";
-    $params = [$classId];
-    if (!empty($statusFilter)) { $where .= " AND f.status = ?"; $params[] = $statusFilter; }
-
-    $followUps = $db->fetchAll("SELECT f.*, s.full_name, s.nis FROM follow_ups f JOIN students s ON f.student_id = s.id WHERE {$where} ORDER BY f.created_at DESC", $params);
-    
-    $counts = [
-        'all' => count($followUps),
-        'belum_diproses' => $db->fetchColumn("SELECT COUNT(*) FROM follow_ups f JOIN students s ON f.student_id = s.id WHERE s.class_id = ? AND f.status = 'belum_diproses'", [$classId]),
-        'dalam_pemantauan' => $db->fetchColumn("SELECT COUNT(*) FROM follow_ups f JOIN students s ON f.student_id = s.id WHERE s.class_id = ? AND f.status = 'dalam_pemantauan'", [$classId]),
-    ];
+    // Counts
+    $countPending = $db->fetchColumn("SELECT COUNT(*) FROM behavior_records br JOIN students s ON br.student_id = s.id WHERE br.type = 'pelanggaran' AND br.validation_status = 'approved' AND (br.follow_up_status IS NULL OR br.follow_up_status = '') {$roleWhere}", $roleParams);
+    $countDone = $db->fetchColumn("SELECT COUNT(*) FROM behavior_records br JOIN students s ON br.student_id = s.id WHERE br.type = 'pelanggaran' AND br.validation_status = 'approved' AND br.follow_up_status = 'ditindaklanjuti' {$roleWhere}", $roleParams);
+    $countSkipped = $db->fetchColumn("SELECT COUNT(*) FROM behavior_records br JOIN students s ON br.student_id = s.id WHERE br.type = 'pelanggaran' AND br.validation_status = 'approved' AND br.follow_up_status = 'tidak_perlu' {$roleWhere}", $roleParams);
 ?>
 
+<!-- Stats -->
+<div class="grid grid-cols-3 gap-4 mb-6">
+    <div class="bg-red-50 border border-red-100 rounded-xl p-4 text-center">
+        <p class="text-2xl font-bold text-red-600"><?= $countPending ?></p>
+        <p class="text-xs text-gray-600">Perlu Tindak Lanjut</p>
+    </div>
+    <div class="bg-green-50 border border-green-100 rounded-xl p-4 text-center">
+        <p class="text-2xl font-bold text-green-600"><?= $countDone ?></p>
+        <p class="text-xs text-gray-600">Sudah Ditindaklanjuti</p>
+    </div>
+    <div class="bg-gray-50 border border-gray-100 rounded-xl p-4 text-center">
+        <p class="text-2xl font-bold text-gray-500"><?= $countSkipped ?></p>
+        <p class="text-xs text-gray-600">Tidak Perlu</p>
+    </div>
+</div>
+
 <div class="bg-white rounded-xl shadow-sm border border-gray-100">
-    <div class="p-6 border-b border-gray-100 flex items-center justify-between">
-        <div>
-            <h3 class="text-lg font-semibold text-gray-800">Tindak Lanjut Pembinaan</h3>
-            <p class="text-sm text-gray-500"><?= $counts['belum_diproses'] ?> belum diproses, <?= $counts['dalam_pemantauan'] ?> dalam pemantauan</p>
-        </div>
-        <a href="?action=add" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"><i class="fas fa-plus"></i> Buat Tindak Lanjut</a>
+    <div class="p-6 border-b border-gray-100">
+        <h3 class="text-lg font-semibold text-gray-800">Tindak Lanjut Pelanggaran Siswa</h3>
+        <p class="text-sm text-gray-500">Catatan pelanggaran otomatis muncul di sini untuk ditindaklanjuti</p>
     </div>
 
+    <!-- Filter Tabs -->
     <div class="p-4 border-b border-gray-50 bg-gray-50/50 flex gap-2 flex-wrap">
-        <a href="?" class="px-3 py-1.5 rounded-lg text-sm <?= empty($statusFilter) ? 'bg-blue-600 text-white' : 'bg-white border text-gray-600' ?>">Semua</a>
-        <a href="?status=belum_diproses" class="px-3 py-1.5 rounded-lg text-sm <?= $statusFilter === 'belum_diproses' ? 'bg-red-600 text-white' : 'bg-white border text-gray-600' ?>">Belum Diproses</a>
-        <a href="?status=dalam_pemantauan" class="px-3 py-1.5 rounded-lg text-sm <?= $statusFilter === 'dalam_pemantauan' ? 'bg-yellow-600 text-white' : 'bg-white border text-gray-600' ?>">Dalam Pemantauan</a>
-        <a href="?status=selesai" class="px-3 py-1.5 rounded-lg text-sm <?= $statusFilter === 'selesai' ? 'bg-green-600 text-white' : 'bg-white border text-gray-600' ?>">Selesai</a>
+        <a href="?status=pending" class="px-3 py-1.5 rounded-lg text-sm <?= $statusFilter === 'pending' ? 'bg-red-600 text-white' : 'bg-white border text-gray-600 hover:bg-gray-50' ?>">
+            Perlu Tindak Lanjut <?php if($countPending): ?><span class="ml-1 bg-white/20 px-1.5 py-0.5 rounded text-[10px]"><?= $countPending ?></span><?php endif; ?>
+        </a>
+        <a href="?status=ditindaklanjuti" class="px-3 py-1.5 rounded-lg text-sm <?= $statusFilter === 'ditindaklanjuti' ? 'bg-green-600 text-white' : 'bg-white border text-gray-600 hover:bg-gray-50' ?>">Sudah Ditindaklanjuti</a>
+        <a href="?status=tidak_perlu" class="px-3 py-1.5 rounded-lg text-sm <?= $statusFilter === 'tidak_perlu' ? 'bg-gray-600 text-white' : 'bg-white border text-gray-600 hover:bg-gray-50' ?>">Tidak Perlu</a>
     </div>
 
-    <div class="divide-y divide-gray-100">
-        <?php if (empty($followUps)): ?>
-        <div class="p-8 text-center text-gray-500">Belum ada tindak lanjut.</div>
-        <?php else: ?>
-        <?php foreach ($followUps as $f): ?>
-        <div class="p-4 hover:bg-gray-50">
-            <div class="flex items-start justify-between gap-3">
-                <div class="flex-1">
-                    <div class="flex items-center gap-2 mb-1">
-                        <?= statusBadge($f['status'], 'followup') ?>
-                        <span class="text-xs text-gray-400"><?= formatDate($f['follow_up_date'], 'short') ?></span>
-                    </div>
-                    <p class="font-medium text-gray-800"><?= htmlspecialchars($f['full_name']) ?> <span class="text-xs text-gray-400">(<?= $f['nis'] ?>)</span></p>
-                    <p class="text-sm text-gray-600 mt-1"><span class="font-medium"><?= ucfirst(str_replace('_', ' ', $f['follow_up_type'])) ?>:</span> <?= htmlspecialchars(truncate($f['description'], 100)) ?></p>
-                    <?php if ($f['result']): ?>
-                    <p class="text-xs text-green-600 mt-1"><i class="fas fa-check"></i> <?= htmlspecialchars(truncate($f['result'], 60)) ?></p>
+    <!-- Records Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-4 py-3 text-left font-medium text-gray-600">Siswa</th>
+                    <th class="px-4 py-3 text-left font-medium text-gray-600">NIS/NISN</th>
+                    <th class="px-4 py-3 text-left font-medium text-gray-600">Kelas</th>
+                    <th class="px-4 py-3 text-left font-medium text-gray-600">Pelanggaran</th>
+                    <th class="px-4 py-3 text-center font-medium text-gray-600">Poin</th>
+                    <th class="px-4 py-3 text-left font-medium text-gray-600">Tanggal</th>
+                    <th class="px-4 py-3 text-left font-medium text-gray-600">Dicatat</th>
+                    <th class="px-4 py-3 text-center font-medium text-gray-600">Aksi</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                <?php foreach ($records as $r): ?>
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3">
+                        <p class="font-medium text-gray-800"><?= htmlspecialchars($r['full_name']) ?></p>
+                        <p class="text-xs text-gray-400"><?= $r['gender'] === 'L' ? 'Laki-laki' : 'Perempuan' ?></p>
+                    </td>
+                    <td class="px-4 py-3 text-xs text-gray-600">
+                        <span class="block"><?= $r['nis'] ?></span>
+                        <?php if ($r['nisn']): ?><span class="text-gray-400"><?= $r['nisn'] ?></span><?php endif; ?>
+                    </td>
+                    <td class="px-4 py-3 text-xs">Kelas <?= $r['grade_level'] ?>-<?= $r['class_name'] ?></td>
+                    <td class="px-4 py-3">
+                        <p class="font-medium text-gray-800"><?= htmlspecialchars($r['category_name']) ?></p>
+                        <span class="px-1.5 py-0.5 bg-<?= $r['severity'] === 'berat' ? 'red' : ($r['severity'] === 'sedang' ? 'yellow' : 'blue') ?>-100 text-<?= $r['severity'] === 'berat' ? 'red' : ($r['severity'] === 'sedang' ? 'yellow' : 'blue') ?>-700 rounded text-[10px] font-medium"><?= ucfirst($r['severity']) ?></span>
+                    </td>
+                    <td class="px-4 py-3 text-center font-bold text-red-600"><?= $r['points'] ?></td>
+                    <td class="px-4 py-3 text-xs text-gray-500"><?= formatDate($r['incident_date'], 'short') ?></td>
+                    <td class="px-4 py-3 text-xs text-gray-500"><?= htmlspecialchars($r['recorder_name'] ?? '-') ?></td>
+                    <td class="px-4 py-3 text-center">
+                        <?php if ($statusFilter === 'pending'): ?>
+                        <div class="flex items-center justify-center gap-1">
+                            <a href="?action=followup&id=<?= $r['id'] ?>" class="px-2.5 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition" title="Tindak Lanjuti">
+                                <i class="fas fa-gavel"></i> Tindak Lanjuti
+                            </a>
+                            <form method="POST" class="inline" onsubmit="return confirm('Tandai catatan ini tidak memerlukan tindak lanjut?')">
+                                <?= Security::csrfField() ?>
+                                <input type="hidden" name="form_action" value="mark_no_followup">
+                                <input type="hidden" name="record_id" value="<?= $r['id'] ?>">
+                                <button type="submit" class="px-2.5 py-1.5 bg-gray-200 text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-300 transition" title="Tidak Perlu Tindak Lanjut">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </form>
+                        </div>
+                        <?php elseif ($statusFilter === 'ditindaklanjuti'): ?>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"><i class="fas fa-check mr-1"></i> Selesai</span>
+                        <?php else: ?>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">Dilewati</span>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+                <?php if (empty($records)): ?>
+                <tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">
+                    <?php if ($statusFilter === 'pending'): ?>
+                    <i class="fas fa-check-circle text-green-400 text-2xl mb-2"></i><br>Semua catatan pelanggaran sudah ditindaklanjuti.
+                    <?php else: ?>
+                    Tidak ada data untuk filter ini.
                     <?php endif; ?>
-                    <?php if ($f['parent_involved']): ?>
-                    <span class="inline-flex items-center text-xs text-purple-600 mt-1"><i class="fas fa-user-friends mr-1"></i> Orang tua terlibat</span>
-                    <?php endif; ?>
-                </div>
-                <a href="?action=edit&id=<?= $f['id'] ?>" class="text-blue-600 hover:text-blue-800 text-sm"><i class="fas fa-edit"></i></a>
-            </div>
-        </div>
-        <?php endforeach; ?>
-        <?php endif; ?>
+                </td></tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
     </div>
 </div>
 
