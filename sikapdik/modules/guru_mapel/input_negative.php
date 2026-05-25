@@ -1,6 +1,6 @@
 <?php
 /**
- * Input Negative Behavior / Perlu Pembinaan (Guru Mapel)
+ * Input Pelanggaran (Guru Mapel)
  * SIKAPDIK
  */
 require_once __DIR__ . '/../../config/app.php';
@@ -66,9 +66,9 @@ include __DIR__ . '/../../templates/header.php';
 <div class="max-w-2xl mx-auto">
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <h3 class="text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">
-            <i class="fas fa-exclamation-circle text-red-500"></i> Input Perilaku Perlu Pembinaan
+            <i class="fas fa-exclamation-circle text-red-500"></i> Input Pelanggaran Siswa
         </h3>
-        <p class="text-sm text-gray-500 mb-6">Catat perilaku siswa yang perlu ditindaklanjuti.</p>
+        <p class="text-sm text-gray-500 mb-6">Catat perilaku pelanggaran siswa yang diamati.</p>
 
         <?php if ($validationMode === '1'): ?>
         <div class="mb-4 p-3 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 text-sm">
@@ -100,7 +100,7 @@ include __DIR__ . '/../../templates/header.php';
             </div>
 
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Kategori Pelanggaran/Pembinaan *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Kategori Pelanggaran *</label>
                 <select name="category_id" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
                     <option value="">-- Pilih Kategori --</option>
                     <?php foreach ($categories as $c): ?>

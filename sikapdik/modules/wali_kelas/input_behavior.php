@@ -113,7 +113,7 @@ include __DIR__ . '/../../templates/header.php';
                             <i class="fas fa-thumbs-up"></i> Keteladanan (+)
                         </button>
                         <button type="button" onclick="showTab('negative')" id="tab-negative" class="px-4 py-2 rounded-lg text-sm font-medium bg-gray-200 text-gray-600 transition">
-                            <i class="fas fa-exclamation-triangle"></i> Perlu Pembinaan (-)
+                            <i class="fas fa-exclamation-triangle"></i> Pelanggaran (-)
                         </button>
                     </div>
 
@@ -130,7 +130,7 @@ include __DIR__ . '/../../templates/header.php';
                     <!-- Negative Categories -->
                     <div id="panel-negative" class="hidden">
                         <select class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent category-select" id="negative-select">
-                            <option value="">-- Pilih Kategori Pembinaan --</option>
+                            <option value="">-- Pilih Kategori Pelanggaran --</option>
                             <?php foreach ($negativeCategories as $c): ?>
                             <option value="<?= $c['id'] ?>" data-points="<?= $c['points'] ?>"><?= htmlspecialchars($c['category_name']) ?> (<?= $c['points'] ?> poin) - <?= ucfirst($c['severity']) ?></option>
                             <?php endforeach; ?>
