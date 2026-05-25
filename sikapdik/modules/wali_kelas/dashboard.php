@@ -96,7 +96,7 @@ include __DIR__ . '/../../templates/header.php';
     <!-- Needs Follow-up -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <h3 class="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <i class="fas fa-exclamation-triangle text-orange-500"></i> Perlu Pembinaan
+            <i class="fas fa-exclamation-triangle text-orange-500"></i> Siswa Perlu Perhatian
         </h3>
         <div class="space-y-2">
             <?php if (empty($needsFollowUp)): ?>
