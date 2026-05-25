@@ -72,8 +72,8 @@ if (isPost() && Security::validateCSRF()) {
             'recorded_by' => Auth::getUserId()
         ];
         $db->insert('achievements', $data);
-        $student = $db->fetch("SELECT full_name FROM students WHERE id = ?", [$studentId]);
-        Auth::logActivity('create_achievement', 'achievements', "Prestasi: {$title} - {$student['full_name']} ({$levelLabels[$level]})");
+        Auth::logActivity('create_achievement', 'achievements', "Prestasi: {$title}");
+        NotificationHelper::onAchievementRecorded($studentId, $title, $level, $points);
         setFlash('success', 'Prestasi berhasil dicatat.');
         redirect('modules/wali_kelas/achievements.php');
     } else {

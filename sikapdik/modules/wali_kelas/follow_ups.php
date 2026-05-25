@@ -50,6 +50,7 @@ if (isPost() && Security::validateCSRF()) {
                 $db->insert('follow_ups', $data);
                 $student = $db->fetch("SELECT full_name FROM students WHERE id = ?", [$studentId]);
                 Auth::logActivity('create_followup', 'follow_ups', "Tindak lanjut: {$student['full_name']} - {$followUpType}");
+                NotificationHelper::onFollowUpCreated($studentId, $followUpType, Auth::getFullName(), $showToParent);
                 setFlash('success', 'Tindak lanjut berhasil disimpan.');
             } else {
                 unset($data['created_by']);
@@ -70,12 +71,14 @@ if ($action === 'add' || ($action === 'edit' && $id > 0)):
     $followUp = $action === 'edit' ? $db->fetch("SELECT * FROM follow_ups WHERE id = ?", [$id]) : null;
     $students = $db->fetchAll("SELECT id, full_name, nis FROM students WHERE class_id = ? AND is_active = 1 ORDER BY full_name", [$classId]);
     
-    // Get behavior records for linking
+    // Get behavior records for linking (for edit mode or if student already selected)
     $behaviorRecords = [];
-    if ($followUp && $followUp['student_id']) {
-        $behaviorRecords = $db->fetchAll("SELECT br.id, br.incident_date, bc.category_name, br.type 
+    $selectedStudentId = $followUp['student_id'] ?? (int) get('student_id', 0);
+    if ($selectedStudentId) {
+        $behaviorRecords = $db->fetchAll("SELECT br.id, br.incident_date, bc.category_name, br.type, br.points, br.description, bc.severity
             FROM behavior_records br JOIN behavior_categories bc ON br.category_id = bc.id 
-            WHERE br.student_id = ? ORDER BY br.incident_date DESC LIMIT 20", [$followUp['student_id']]);
+            WHERE br.student_id = ? AND br.type = 'pelanggaran' AND br.validation_status = 'approved'
+            ORDER BY br.incident_date DESC LIMIT 30", [$selectedStudentId]);
     }
 ?>
 
@@ -92,12 +95,44 @@ if ($action === 'add' || ($action === 'edit' && $id > 0)):
 
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Siswa *</label>
-                <select name="student_id" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                <select name="student_id" id="studentSelect" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required onchange="loadBehaviorRecords(this.value)">
                     <option value="">-- Pilih Siswa --</option>
                     <?php foreach ($students as $s): ?>
                     <option value="<?= $s['id'] ?>" <?= ($followUp['student_id'] ?? '') == $s['id'] ? 'selected' : '' ?>><?= htmlspecialchars($s['full_name']) ?> (<?= $s['nis'] ?>)</option>
                     <?php endforeach; ?>
                 </select>
+            </div>
+
+            <!-- Behavior Records for Selected Student -->
+            <div class="mb-4" id="behaviorRecordsSection" style="<?= empty($behaviorRecords) ? 'display:none' : '' ?>">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-exclamation-circle text-red-500"></i> Catatan Pelanggaran Terkait
+                </label>
+                <div id="behaviorRecordsList" class="max-h-48 overflow-y-auto border border-gray-200 rounded-lg mb-2">
+                    <?php if (!empty($behaviorRecords)): ?>
+                    <?php foreach ($behaviorRecords as $br): ?>
+                    <label class="flex items-start gap-3 p-3 hover:bg-red-50 border-b border-gray-100 last:border-0 cursor-pointer">
+                        <input type="radio" name="behavior_record_id" value="<?= $br['id'] ?>" <?= ($followUp['behavior_record_id'] ?? '') == $br['id'] ? 'checked' : '' ?> class="mt-1 text-red-600 focus:ring-red-500">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-medium text-red-600"><?= formatDate($br['incident_date'], 'short') ?></span>
+                                <span class="px-1.5 py-0.5 bg-red-100 text-red-700 rounded text-[10px] font-medium"><?= $br['points'] ?> poin</span>
+                                <span class="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px]"><?= ucfirst($br['severity']) ?></span>
+                            </div>
+                            <p class="text-sm text-gray-800 font-medium"><?= htmlspecialchars($br['category_name']) ?></p>
+                            <?php if ($br['description']): ?>
+                            <p class="text-xs text-gray-500 truncate"><?= htmlspecialchars($br['description']) ?></p>
+                            <?php endif; ?>
+                        </div>
+                    </label>
+                    <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+                <label class="flex items-center gap-2 p-2 text-sm text-gray-500 cursor-pointer">
+                    <input type="radio" name="behavior_record_id" value="" <?= empty($followUp['behavior_record_id'] ?? '') ? 'checked' : '' ?> class="text-gray-400">
+                    <span>Tidak terkait catatan spesifik</span>
+                </label>
+                <p id="noBehaviorMsg" class="text-xs text-gray-400 italic hidden p-2">Siswa ini belum memiliki catatan pelanggaran.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -135,15 +170,6 @@ if ($action === 'add' || ($action === 'edit' && $id > 0)):
                         <option value="selesai" <?= ($followUp['status'] ?? '') === 'selesai' ? 'selected' : '' ?>>Selesai</option>
                     </select>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Catatan Perilaku Terkait</label>
-                    <select name="behavior_record_id" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <option value="">-- Tidak Terkait --</option>
-                        <?php foreach ($behaviorRecords as $br): ?>
-                        <option value="<?= $br['id'] ?>" <?= ($followUp['behavior_record_id'] ?? '') == $br['id'] ? 'selected' : '' ?>><?= formatDate($br['incident_date'], 'short') ?> - <?= $br['category_name'] ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
             </div>
 
             <div class="flex gap-4 mb-6">
@@ -164,6 +190,62 @@ if ($action === 'add' || ($action === 'edit' && $id > 0)):
         </form>
     </div>
 </div>
+
+<script>
+function loadBehaviorRecords(studentId) {
+    const section = document.getElementById('behaviorRecordsSection');
+    const list = document.getElementById('behaviorRecordsList');
+    const noMsg = document.getElementById('noBehaviorMsg');
+
+    if (!studentId) {
+        section.style.display = 'none';
+        return;
+    }
+
+    section.style.display = '';
+    list.innerHTML = '<div class="p-4 text-center text-sm text-gray-400"><i class="fas fa-spinner fa-spin"></i> Memuat catatan pelanggaran...</div>';
+    noMsg.classList.add('hidden');
+
+    fetch('<?= BASE_URL ?>modules/wali_kelas/get_behavior_records.php?student_id=' + studentId)
+    .then(r => r.json())
+    .then(data => {
+        if (!data.length) {
+            list.innerHTML = '';
+            noMsg.classList.remove('hidden');
+            return;
+        }
+        noMsg.classList.add('hidden');
+        list.innerHTML = data.map(r => `
+            <label class="flex items-start gap-3 p-3 hover:bg-red-50 border-b border-gray-100 last:border-0 cursor-pointer">
+                <input type="radio" name="behavior_record_id" value="${r.id}" class="mt-1 text-red-600 focus:ring-red-500">
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-medium text-red-600">${r.date}</span>
+                        <span class="px-1.5 py-0.5 bg-red-100 text-red-700 rounded text-[10px] font-medium">${r.points} poin</span>
+                        <span class="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px]">${r.severity}</span>
+                    </div>
+                    <p class="text-sm text-gray-800 font-medium">${r.category}</p>
+                    ${r.description ? '<p class="text-xs text-gray-500 truncate">' + r.description + '</p>' : ''}
+                </div>
+            </label>
+        `).join('') + `
+            <label class="flex items-center gap-2 p-3 text-sm text-gray-500 cursor-pointer border-t border-gray-100">
+                <input type="radio" name="behavior_record_id" value="" checked class="text-gray-400">
+                <span>Tidak terkait catatan spesifik</span>
+            </label>
+        `;
+    })
+    .catch(() => {
+        list.innerHTML = '<p class="p-3 text-xs text-red-500">Gagal memuat data.</p>';
+    });
+}
+
+// Auto-load if student already selected (edit mode)
+document.addEventListener('DOMContentLoaded', function() {
+    const sel = document.getElementById('studentSelect');
+    if (sel && sel.value) loadBehaviorRecords(sel.value);
+});
+</script>
 
 <?php else:
     $statusFilter = get('status');

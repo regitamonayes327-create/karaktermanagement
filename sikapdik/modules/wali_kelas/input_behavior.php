@@ -47,6 +47,9 @@ if (isPost() && Security::validateCSRF()) {
             $student = $db->fetch("SELECT full_name FROM students WHERE id = ?", [$studentId]);
             Auth::logActivity('input_behavior', 'behavior', "Input {$category['type']}: {$student['full_name']} - {$category['category_name']}");
             
+            // Send notification
+            NotificationHelper::onBehaviorRecorded($studentId, $category['type'], $category['category_name'], $category['points'], Auth::getFullName());
+
             setFlash('success', "Catatan perilaku berhasil disimpan. ({$category['type']}: {$category['category_name']}, Poin: {$category['points']})");
             redirect('modules/wali_kelas/input_behavior.php');
         }
