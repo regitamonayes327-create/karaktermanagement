@@ -23,7 +23,7 @@ $pageTitles = [
     'guru_mapel' => 'Laporan Catatan Saya',
     'orang_tua' => 'Laporan Anak'
 ];
-define('PAGE_TITLE', $pageTitles[$role] ?? 'Laporan');
+if (!defined('PAGE_TITLE')) define('PAGE_TITLE', $pageTitles[$role] ?? 'Laporan');
 
 // Report type
 $reportType = get('type', 'attendance');

@@ -4,7 +4,7 @@
  * SIKAPDIK
  */
 require_once __DIR__ . '/../../config/app.php';
-Auth::requireRole(['wali_kelas', 'admin', 'guru_mapel']);
+Auth::requireRole(['wali_kelas', 'admin', 'guru_mapel', 'kepala_sekolah']);
 
 define('PAGE_TITLE', 'Prestasi Siswa');
 

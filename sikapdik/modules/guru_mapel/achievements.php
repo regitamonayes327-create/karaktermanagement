@@ -1,7 +1,5 @@
 <?php
 /**
- * Redirect to wali_kelas achievements (shared module)
+ * Achievements - Guru Mapel
  */
-require_once __DIR__ . '/../../config/app.php';
-Auth::requireRole(['guru_mapel']);
 include __DIR__ . '/../wali_kelas/achievements.php';
