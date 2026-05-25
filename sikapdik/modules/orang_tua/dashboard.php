@@ -11,6 +11,10 @@ define('PAGE_TITLE', 'Dashboard Orang Tua');
 $db = Database::getInstance();
 $parentId = $_SESSION['parent_id'] ?? 0;
 
+// Tahun ajaran aktif
+$tahunAjaran = $db->fetchColumn("SELECT setting_value FROM settings WHERE setting_key = 'active_academic_year'") ?: '-';
+$semester = $db->fetchColumn("SELECT setting_value FROM settings WHERE setting_key = 'active_semester'") ?: '1';
+
 // Get children
 $children = $db->fetchAll("SELECT s.*, c.class_name, c.grade_level 
     FROM parent_student ps JOIN students s ON ps.student_id = s.id LEFT JOIN classes c ON s.class_id = c.id
@@ -29,6 +33,7 @@ $monthEnd = date('Y-m-t');
 // Child data
 $attendanceThisMonth = [];
 $positiveRecords = [];
+$pelanggaranRecords = [];
 $achievements = [];
 $followUps = [];
 $notifications = [];
@@ -45,6 +50,12 @@ if ($child) {
     $positiveRecords = $db->fetchAll("SELECT br.*, bc.category_name FROM behavior_records br 
         JOIN behavior_categories bc ON br.category_id = bc.id 
         WHERE br.student_id = ? AND br.type = 'keteladanan' AND br.validation_status = 'approved' AND {$showCondition}
+        ORDER BY br.incident_date DESC LIMIT 10", [$selectedChild]);
+
+    // Pelanggaran visible to parent
+    $pelanggaranRecords = $db->fetchAll("SELECT br.*, bc.category_name FROM behavior_records br 
+        JOIN behavior_categories bc ON br.category_id = bc.id 
+        WHERE br.student_id = ? AND br.type = 'pelanggaran' AND br.validation_status = 'approved' AND br.show_to_parent = 1
         ORDER BY br.incident_date DESC LIMIT 10", [$selectedChild]);
 
     // Achievements
@@ -79,6 +90,7 @@ include __DIR__ . '/../../templates/header.php';
         <div>
             <h3 class="text-lg font-semibold"><?= htmlspecialchars($child['full_name']) ?></h3>
             <p class="text-sm text-blue-100">Kelas <?= $child['grade_level'] ?> - <?= $child['class_name'] ?> | NIS: <?= $child['nis'] ?></p>
+            <p class="text-xs text-blue-200 mt-1">Tahun Ajaran: <?= $tahunAjaran ?> | Semester <?= $semester ?></p>
         </div>
     </div>
 </div>
@@ -128,34 +140,55 @@ include __DIR__ . '/../../templates/header.php';
         </div>
     </div>
 
-    <!-- Achievements & Follow-ups -->
-    <div class="space-y-6">
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 class="font-semibold text-gray-800 mb-4 flex items-center gap-2"><i class="fas fa-trophy text-yellow-500"></i> Prestasi</h3>
-            <?php if (empty($achievements)): ?>
-            <p class="text-sm text-gray-500 text-center py-2">Belum ada prestasi.</p>
+    <!-- Pelanggaran Records (visible to parent) -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 class="font-semibold text-gray-800 mb-4 flex items-center gap-2"><i class="fas fa-exclamation-triangle text-red-500"></i> Catatan Pelanggaran</h3>
+        <div class="space-y-2">
+            <?php if (empty($pelanggaranRecords)): ?>
+            <p class="text-sm text-gray-500 text-center py-4">Tidak ada catatan pelanggaran.</p>
             <?php else: ?>
-            <?php foreach ($achievements as $a): ?>
-            <div class="p-2 rounded bg-yellow-50 mb-2">
-                <p class="text-sm font-medium text-gray-800"><?= htmlspecialchars($a['title']) ?></p>
-                <p class="text-xs text-gray-500"><?= ucfirst($a['level']) ?> | <?= formatDate($a['achievement_date'], 'short') ?></p>
+            <?php foreach ($pelanggaranRecords as $r): ?>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-red-50">
+                <div>
+                    <p class="text-sm text-gray-700"><?= htmlspecialchars($r['category_name']) ?></p>
+                    <p class="text-xs text-gray-400"><?= formatDate($r['incident_date'], 'short') ?></p>
+                    <?php if ($r['description']): ?><p class="text-xs text-red-500 mt-0.5"><?= htmlspecialchars(mb_strimwidth($r['description'], 0, 60, '...')) ?></p><?php endif; ?>
+                </div>
+                <span class="text-sm font-bold text-red-600"><?= $r['points'] ?></span>
             </div>
             <?php endforeach; ?>
             <?php endif; ?>
         </div>
+    </div>
+</div>
 
-        <?php if (!empty($followUps)): ?>
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 class="font-semibold text-gray-800 mb-4 flex items-center gap-2"><i class="fas fa-info-circle text-blue-500"></i> Catatan Pembinaan</h3>
-            <?php foreach ($followUps as $f): ?>
-            <div class="p-3 rounded-lg bg-blue-50 border border-blue-100 mb-2">
-                <p class="text-sm text-gray-700"><?= htmlspecialchars($f['description']) ?></p>
-                <p class="text-xs text-gray-400 mt-1"><?= formatDate($f['follow_up_date'], 'short') ?> | <?= statusBadge($f['status'], 'followup') ?></p>
-            </div>
-            <?php endforeach; ?>
+<!-- Achievements & Follow-ups -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 class="font-semibold text-gray-800 mb-4 flex items-center gap-2"><i class="fas fa-trophy text-yellow-500"></i> Prestasi</h3>
+        <?php if (empty($achievements)): ?>
+        <p class="text-sm text-gray-500 text-center py-2">Belum ada prestasi.</p>
+        <?php else: ?>
+        <?php foreach ($achievements as $a): ?>
+        <div class="p-2 rounded bg-yellow-50 mb-2">
+            <p class="text-sm font-medium text-gray-800"><?= htmlspecialchars($a['title']) ?></p>
+            <p class="text-xs text-gray-500"><?= ucfirst($a['level']) ?> | <?= formatDate($a['achievement_date'], 'short') ?></p>
         </div>
+        <?php endforeach; ?>
         <?php endif; ?>
     </div>
+
+    <?php if (!empty($followUps)): ?>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 class="font-semibold text-gray-800 mb-4 flex items-center gap-2"><i class="fas fa-info-circle text-blue-500"></i> Catatan Pembinaan</h3>
+        <?php foreach ($followUps as $f): ?>
+        <div class="p-3 rounded-lg bg-blue-50 border border-blue-100 mb-2">
+            <p class="text-sm text-gray-700"><?= htmlspecialchars($f['description']) ?></p>
+            <p class="text-xs text-gray-400 mt-1"><?= formatDate($f['follow_up_date'], 'short') ?> | <?= statusBadge($f['status'], 'followup') ?></p>
+        </div>
+        <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
 </div>
 
 <?php else: ?>
