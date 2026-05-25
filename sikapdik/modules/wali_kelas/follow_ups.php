@@ -20,6 +20,17 @@ $id = (int) get('id', 0);
 if (isPost() && Security::validateCSRF()) {
     $formAction = post('form_action');
     
+    // Mark follow-up as complete (selesai)
+    if ($formAction === 'mark_complete') {
+        $followUpId = (int) post('follow_up_id');
+        if ($followUpId) {
+            $db->update('follow_ups', ['status' => 'selesai'], 'id = ?', [$followUpId]);
+            Auth::logActivity('mark_complete', 'follow_ups', "Selesaikan tindak lanjut: follow_up ID {$followUpId}");
+            setFlash('success', 'Tindak lanjut ditandai selesai.');
+        }
+        redirect('modules/wali_kelas/follow_ups.php?status=ditindaklanjuti');
+    }
+
     // Mark as "tidak perlu tindak lanjut"
     if ($formAction === 'mark_no_followup') {
         $recordId = (int) post('record_id');
@@ -210,12 +221,14 @@ if ($action === 'followup' && $id > 0):
     }
 
     $records = $db->fetchAll("SELECT br.*, s.full_name, s.nis, s.nisn, s.gender, c.class_name, c.grade_level,
-        bc.category_name, bc.severity, u.full_name as recorder_name
+        bc.category_name, bc.severity, u.full_name as recorder_name,
+        fu.id as follow_up_id, fu.status as follow_up_real_status
         FROM behavior_records br
         JOIN students s ON br.student_id = s.id
         LEFT JOIN classes c ON s.class_id = c.id
         JOIN behavior_categories bc ON br.category_id = bc.id
         LEFT JOIN users u ON br.recorded_by = u.id
+        LEFT JOIN follow_ups fu ON fu.behavior_record_id = br.id
         WHERE br.type = 'pelanggaran' AND br.validation_status = 'approved'
         {$roleWhere} {$followUpWhere}
         ORDER BY br.incident_date DESC, br.created_at DESC
@@ -308,7 +321,16 @@ if ($action === 'followup' && $id > 0):
                             </form>
                         </div>
                         <?php elseif ($statusFilter === 'ditindaklanjuti'): ?>
+                        <?php if (isset($r['follow_up_real_status']) && $r['follow_up_real_status'] === 'dalam_pemantauan'): ?>
+                        <form method="POST" class="inline" onsubmit="return confirm('Tandai tindak lanjut ini sebagai selesai?')">
+                            <?= Security::csrfField() ?>
+                            <input type="hidden" name="form_action" value="mark_complete">
+                            <input type="hidden" name="follow_up_id" value="<?= $r['follow_up_id'] ?>">
+                            <button type="submit" class="px-2.5 py-1.5 bg-green-600 text-white rounded-lg text-xs font-medium hover:bg-green-700 transition"><i class="fas fa-check-circle"></i> Selesaikan</button>
+                        </form>
+                        <?php else: ?>
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"><i class="fas fa-check mr-1"></i> Selesai</span>
+                        <?php endif; ?>
                         <?php else: ?>
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">Dilewati</span>
                         <?php endif; ?>
