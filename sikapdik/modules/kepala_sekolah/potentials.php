@@ -1,4 +1,5 @@
 <?php
-require_once __DIR__ . '/../../config/app.php';
-Auth::requireRole(['kepala_sekolah']);
+/**
+ * Potentials - Kepala Sekolah
+ */
 include __DIR__ . '/../wali_kelas/potentials.php';
