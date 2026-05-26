@@ -4,7 +4,7 @@
  * SIKAPDIK
  */
 require_once __DIR__ . '/../../config/app.php';
-Auth::requireRole(['wali_kelas', 'admin']);
+Auth::requireRole(['wali_kelas', 'admin', 'guru_mapel']);
 
 define('PAGE_TITLE', 'Presensi Manual');
 
@@ -81,7 +81,7 @@ include __DIR__ . '/../../templates/header.php';
             <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
             <input type="date" name="date" value="<?= $dateFilter ?>" class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm">
         </div>
-        <?php if (Auth::getRole() === 'admin'): ?>
+        <?php if (Auth::getRole() === 'admin' || Auth::getRole() === 'guru_mapel'): ?>
         <div class="flex-1">
             <label class="block text-sm font-medium text-gray-700 mb-1">Kelas</label>
             <select name="class_id" class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm">
