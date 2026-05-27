@@ -15,6 +15,7 @@ $menus = [
         ['icon' => 'fas fa-tachometer-alt', 'label' => 'Dashboard', 'url' => 'modules/admin/dashboard.php', 'id' => 'dashboard'],
         ['icon' => 'fas fa-users', 'label' => 'Data Pengguna', 'url' => 'modules/admin/users.php', 'id' => 'users'],
         ['icon' => 'fas fa-chalkboard-teacher', 'label' => 'Data Guru', 'url' => 'modules/admin/teachers.php', 'id' => 'teachers'],
+        ['icon' => 'fas fa-chalkboard', 'label' => 'Penugasan Guru', 'url' => 'modules/admin/teacher_assignments.php', 'id' => 'teacher_assignments'],
         ['icon' => 'fas fa-school', 'label' => 'Data Kelas', 'url' => 'modules/admin/classes.php', 'id' => 'classes'],
         ['icon' => 'fas fa-user-graduate', 'label' => 'Data Siswa', 'url' => 'modules/admin/students.php', 'id' => 'students'],
         ['icon' => 'fas fa-user-friends', 'label' => 'Data Orang Tua', 'url' => 'modules/admin/parents.php', 'id' => 'parents'],
