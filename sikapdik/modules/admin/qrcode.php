@@ -1,6 +1,6 @@
 <?php
 /**
- * QR Code Generation
+ * QR Code Generation - Using QR Server API (no JS dependency)
  * SIKAPDIK
  */
 require_once __DIR__ . '/../../config/app.php';
@@ -59,24 +59,29 @@ include __DIR__ . '/../../templates/header.php';
                 <?php if ($noQrCount > 0): ?>
                 <span class="text-orange-600 font-medium"><?= $noQrCount ?> siswa belum memiliki QR Code</span>
                 <?php else: ?>
-                Semua siswa sudah memiliki QR Code
+                <span class="text-green-600">Semua siswa sudah memiliki QR Code</span>
                 <?php endif; ?>
             </p>
         </div>
-        <?php if ($noQrCount > 0): ?>
-        <form method="POST" onsubmit="return confirm('Generate QR untuk semua siswa yang belum memiliki?')">
-            <?= Security::csrfField() ?>
-            <input type="hidden" name="form_action" value="generate_all">
-            <button type="submit" class="inline-flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm">
-                <i class="fas fa-magic"></i> Generate Semua
+        <div class="flex gap-2">
+            <?php if ($noQrCount > 0): ?>
+            <form method="POST" onsubmit="return confirm('Generate QR untuk semua siswa yang belum memiliki?')">
+                <?= Security::csrfField() ?>
+                <input type="hidden" name="form_action" value="generate_all">
+                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm">
+                    <i class="fas fa-magic"></i> Generate Semua
+                </button>
+            </form>
+            <?php endif; ?>
+            <button type="button" onclick="window.print()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-sm">
+                <i class="fas fa-print"></i> Cetak
             </button>
-        </form>
-        <?php endif; ?>
+        </div>
     </div>
 </div>
 
 <!-- Filter -->
-<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6 no-print">
     <form method="GET" class="flex gap-3 items-end">
         <div class="flex-1">
             <select name="class_id" class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm">
@@ -87,7 +92,6 @@ include __DIR__ . '/../../templates/header.php';
             </select>
         </div>
         <button type="submit" class="px-4 py-2 bg-gray-600 text-white rounded-lg text-sm"><i class="fas fa-filter"></i> Filter</button>
-        <button type="button" onclick="printQRCards()" class="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm"><i class="fas fa-print"></i> Cetak Kartu QR</button>
     </form>
 </div>
 
@@ -95,13 +99,15 @@ include __DIR__ . '/../../templates/header.php';
 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="qrCards">
     <?php foreach ($students as $s): ?>
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center qr-card">
-        <div class="mb-2">
+        <div class="mb-3">
             <?php if ($s['qr_token']): ?>
-            <div class="w-36 h-36 mx-auto bg-white border-2 border-gray-200 rounded-lg flex items-center justify-center overflow-hidden" id="qr-container-<?= $s['id'] ?>">
-                <div id="qr-<?= $s['id'] ?>"></div>
-            </div>
+            <!-- QR Code generated via API - guaranteed to work -->
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=<?= urlencode($s['qr_token']) ?>&color=1e3a5f&bgcolor=ffffff&format=png" 
+                 alt="QR <?= htmlspecialchars($s['full_name']) ?>" 
+                 class="w-36 h-36 mx-auto rounded-lg border-2 border-gray-200"
+                 loading="lazy">
             <?php else: ?>
-            <div class="w-36 h-36 mx-auto bg-gray-100 rounded-lg flex items-center justify-center">
+            <div class="w-36 h-36 mx-auto bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
                 <div class="text-center">
                     <i class="fas fa-qrcode text-gray-300 text-3xl"></i>
                     <p class="text-xs text-gray-400 mt-1">Belum ada QR</p>
@@ -112,7 +118,7 @@ include __DIR__ . '/../../templates/header.php';
         <p class="font-medium text-gray-800 text-sm"><?= htmlspecialchars($s['full_name']) ?></p>
         <p class="text-xs text-gray-500"><?= $s['nis'] ?> | <?= $s['class_name'] ? 'Kelas ' . $s['grade_level'] . '-' . $s['class_name'] : '-' ?></p>
         
-        <div class="mt-2">
+        <div class="mt-2 no-print">
             <form method="POST" class="inline">
                 <?= Security::csrfField() ?>
                 <input type="hidden" name="form_action" value="regenerate">
@@ -130,76 +136,15 @@ include __DIR__ . '/../../templates/header.php';
 <div class="text-center py-8 text-gray-500">Tidak ada siswa untuk ditampilkan.</div>
 <?php endif; ?>
 
-<!-- QR Code JS library - using qrcodejs which is more reliable -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Data QR tokens
-    var qrData = [
-        <?php foreach ($students as $s): ?>
-        <?php if ($s['qr_token']): ?>
-        { id: '<?= $s['id'] ?>', token: '<?= $s['qr_token'] ?>' },
-        <?php endif; ?>
-        <?php endforeach; ?>
-    ];
-
-    // Generate QR codes with slight delay to prevent browser blocking
-    var index = 0;
-    function generateNext() {
-        if (index >= qrData.length) return;
-        
-        var item = qrData[index];
-        var container = document.getElementById('qr-' + item.id);
-        
-        if (container) {
-            try {
-                new QRCode(container, {
-                    text: item.token,
-                    width: 128,
-                    height: 128,
-                    colorDark: '#1e3a5f',
-                    colorLight: '#ffffff',
-                    correctLevel: QRCode.CorrectLevel.M
-                });
-            } catch(e) {
-                console.error('QR Error for ID ' + item.id + ':', e);
-                container.innerHTML = '<p style="color:#999;font-size:10px;">QR Error</p>';
-            }
-        }
-        
-        index++;
-        // Process in batches of 5 with small delay
-        if (index % 5 === 0) {
-            setTimeout(generateNext, 50);
-        } else {
-            generateNext();
-        }
-    }
-    
-    generateNext();
-});
-
-function printQRCards() {
-    window.print();
-}
-</script>
-
 <style>
-#qrCards .qr-card [id^="qr-"] img {
-    display: block !important;
-    margin: 0 auto;
-}
-#qrCards .qr-card [id^="qr-"] canvas {
-    display: block !important;
-    margin: 0 auto;
-}
 @media print {
-    .sidebar, header, nav, form, button, .no-print, aside { display: none !important; }
+    .sidebar, aside, header, nav, .no-print { display: none !important; }
     body { background: white !important; }
-    .qr-card { break-inside: avoid; border: 1px solid #ddd !important; page-break-inside: avoid; }
-    #qrCards { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 10px !important; }
-    main { padding: 0 !important; }
     .flex.h-screen { display: block !important; }
+    main { padding: 5px !important; }
+    .qr-card { break-inside: avoid; page-break-inside: avoid; border: 1px solid #ccc !important; margin-bottom: 8px; }
+    #qrCards { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 8px !important; }
+    .qr-card img { width: 120px !important; height: 120px !important; }
 }
 </style>
 
