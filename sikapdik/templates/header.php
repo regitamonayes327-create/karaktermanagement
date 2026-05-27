@@ -21,6 +21,7 @@ $menus = [
         ['icon' => 'fas fa-qrcode', 'label' => 'Generate QR Code', 'url' => 'modules/admin/qrcode.php', 'id' => 'qrcode'],
         ['icon' => 'fas fa-list-alt', 'label' => 'Kategori Perilaku', 'url' => 'modules/admin/behavior_categories.php', 'id' => 'behavior_categories'],
         ['icon' => 'fas fa-calendar-check', 'label' => 'Presensi', 'url' => 'modules/admin/attendance.php', 'id' => 'attendance'],
+        ['icon' => 'fas fa-level-up-alt', 'label' => 'Kenaikan Kelas', 'url' => 'modules/admin/class_promotion.php', 'id' => 'class_promotion'],
         ['icon' => 'fas fa-file-alt', 'label' => 'Laporan', 'url' => 'modules/admin/reports.php', 'id' => 'reports'],
         ['icon' => 'fas fa-history', 'label' => 'Audit Log', 'url' => 'modules/admin/audit_log.php', 'id' => 'audit_log'],
         ['icon' => 'fas fa-cog', 'label' => 'Pengaturan', 'url' => 'modules/admin/settings.php', 'id' => 'settings'],
