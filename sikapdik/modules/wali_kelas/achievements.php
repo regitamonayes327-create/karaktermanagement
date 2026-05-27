@@ -64,7 +64,7 @@ if ($action === 'add'):
             <?= Security::csrfField() ?>
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Siswa *</label>
-                <select name="student_id" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                <select name="student_id" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent combo-search" required data-placeholder="Ketik nama siswa...">
                     <option value="">-- Pilih --</option>
                     <?php foreach ($students as $s): ?>
                     <option value="<?= $s['id'] ?>"><?= htmlspecialchars($s['full_name']) ?> (<?= $s['nis'] ?>) - Kelas <?= $s['grade_level'] ?>-<?= $s['class_name'] ?></option>

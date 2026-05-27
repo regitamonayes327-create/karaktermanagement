@@ -84,6 +84,7 @@ $roleMenus = $menus[$currentRole] ?? [];
         .sidebar-item:hover { background: rgba(59, 130, 246, 0.05); }
         @media (max-width: 768px) { .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } }
     </style>
+    <script src="<?= BASE_URL ?>assets/js/combo-search.js" defer></script>
 </head>
 <body class="bg-gray-50 font-sans">
 <div class="flex h-screen overflow-hidden">
