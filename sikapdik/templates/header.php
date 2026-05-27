@@ -49,6 +49,8 @@ $menus = [
     ],
     'guru_mapel' => [
         ['icon' => 'fas fa-tachometer-alt', 'label' => 'Dashboard', 'url' => 'modules/guru_mapel/dashboard.php', 'id' => 'dashboard'],
+        ['icon' => 'fas fa-qrcode', 'label' => 'Scan QR Presensi', 'url' => 'modules/wali_kelas/scan_qr.php', 'id' => 'scan_qr'],
+        ['icon' => 'fas fa-clipboard-list', 'label' => 'Presensi Manual', 'url' => 'modules/wali_kelas/manual_attendance.php', 'id' => 'manual_attendance'],
         ['icon' => 'fas fa-school', 'label' => 'Kelas yang Diajar', 'url' => 'modules/guru_mapel/my_classes.php', 'id' => 'my_classes'],
         ['icon' => 'fas fa-thumbs-up', 'label' => 'Input Keteladanan', 'url' => 'modules/guru_mapel/input_positive.php', 'id' => 'input_positive'],
         ['icon' => 'fas fa-exclamation-circle', 'label' => 'Input Pelanggaran', 'url' => 'modules/guru_mapel/input_negative.php', 'id' => 'input_negative'],
