@@ -25,6 +25,7 @@ $menus = [
         ['icon' => 'fas fa-file-alt', 'label' => 'Laporan', 'url' => 'modules/admin/reports.php', 'id' => 'reports'],
         ['icon' => 'fas fa-history', 'label' => 'Audit Log', 'url' => 'modules/admin/audit_log.php', 'id' => 'audit_log'],
         ['icon' => 'fas fa-cog', 'label' => 'Pengaturan', 'url' => 'modules/admin/settings.php', 'id' => 'settings'],
+        ['icon' => 'fas fa-sync-alt', 'label' => 'Reset Tahun Ajaran', 'url' => 'modules/admin/year_reset.php', 'id' => 'year_reset'],
     ],
     'kepala_sekolah' => [
         ['icon' => 'fas fa-tachometer-alt', 'label' => 'Dashboard', 'url' => 'modules/kepala_sekolah/dashboard.php', 'id' => 'dashboard'],
@@ -47,6 +48,7 @@ $menus = [
         ['icon' => 'fas fa-lightbulb', 'label' => 'Potensi', 'url' => 'modules/wali_kelas/potentials.php', 'id' => 'potentials'],
         ['icon' => 'fas fa-id-card', 'label' => 'Profil Siswa', 'url' => 'modules/wali_kelas/student_profile.php', 'id' => 'student_profile'],
         ['icon' => 'fas fa-file-alt', 'label' => 'Laporan Kelas', 'url' => 'modules/wali_kelas/reports.php', 'id' => 'reports'],
+        ['icon' => 'fas fa-file-signature', 'label' => 'Rapor Karakter', 'url' => 'modules/wali_kelas/character_report.php', 'id' => 'character_report'],
     ],
     'guru_mapel' => [
         ['icon' => 'fas fa-tachometer-alt', 'label' => 'Dashboard', 'url' => 'modules/guru_mapel/dashboard.php', 'id' => 'dashboard'],
