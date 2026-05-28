@@ -25,7 +25,7 @@ $menus = [
         ['icon' => 'fas fa-file-alt', 'label' => 'Laporan', 'url' => 'modules/admin/reports.php', 'id' => 'reports'],
         ['icon' => 'fas fa-history', 'label' => 'Audit Log', 'url' => 'modules/admin/audit_log.php', 'id' => 'audit_log'],
         ['icon' => 'fas fa-cog', 'label' => 'Pengaturan', 'url' => 'modules/admin/settings.php', 'id' => 'settings'],
-        ['icon' => 'fas fa-sync-alt', 'label' => 'Reset Tahun Ajaran', 'url' => 'modules/admin/year_reset.php', 'id' => 'year_reset'],
+        ['icon' => 'fas fa-sync-alt', 'label' => 'Manajemen Data', 'url' => 'modules/admin/year_reset.php', 'id' => 'year_reset'],
     ],
     'kepala_sekolah' => [
         ['icon' => 'fas fa-tachometer-alt', 'label' => 'Dashboard', 'url' => 'modules/kepala_sekolah/dashboard.php', 'id' => 'dashboard'],
