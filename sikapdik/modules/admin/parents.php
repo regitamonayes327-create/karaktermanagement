@@ -166,7 +166,10 @@ if ($action === 'add' || ($action === 'edit' && $id > 0)):
             <h3 class="text-lg font-semibold text-gray-800">Daftar Orang Tua/Wali</h3>
             <p class="text-sm text-gray-500"><?= formatNumber($total) ?> data</p>
         </div>
-        <a href="?action=add" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm"><i class="fas fa-plus"></i> Tambah</a>
+        <div class="flex gap-2">
+            <a href="<?= BASE_URL ?>modules/admin/import_parents.php" class="inline-flex items-center gap-2 px-4 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-sm"><i class="fas fa-file-import"></i> Import Excel</a>
+            <a href="?action=add" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm"><i class="fas fa-plus"></i> Tambah</a>
+        </div>
     </div>
 
     <div class="p-4 border-b border-gray-50 bg-gray-50/50">
