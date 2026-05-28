@@ -36,6 +36,7 @@ $menus = [
         ['icon' => 'fas fa-trophy', 'label' => 'Prestasi', 'url' => 'modules/kepala_sekolah/achievements.php', 'id' => 'achievements'],
         ['icon' => 'fas fa-star', 'label' => 'Potensi Siswa', 'url' => 'modules/kepala_sekolah/potentials.php', 'id' => 'potentials'],
         ['icon' => 'fas fa-file-alt', 'label' => 'Laporan', 'url' => 'modules/kepala_sekolah/reports.php', 'id' => 'reports'],
+        ['icon' => 'fas fa-file-signature', 'label' => 'Rapor Karakter', 'url' => 'modules/kepala_sekolah/character_report.php', 'id' => 'character_report'],
     ],
     'wali_kelas' => [
         ['icon' => 'fas fa-tachometer-alt', 'label' => 'Dashboard', 'url' => 'modules/wali_kelas/dashboard.php', 'id' => 'dashboard'],
