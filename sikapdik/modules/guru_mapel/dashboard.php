@@ -30,6 +30,19 @@ $recentRecords = $db->fetchAll("SELECT br.*, s.full_name, bc.category_name
     FROM behavior_records br JOIN students s ON br.student_id = s.id JOIN behavior_categories bc ON br.category_id = bc.id
     WHERE br.recorded_by = ? ORDER BY br.created_at DESC LIMIT 8", [Auth::getUserId()]);
 
+
+// --- Chart Data: Weekly records (last 4 weeks) ---
+$weeklyRecords = [];
+for ($i = 3; $i >= 0; $i--) {
+    $wStart = date('Y-m-d', strtotime("-{$i} weeks monday"));
+    $wEnd = date('Y-m-d', strtotime("-{$i} weeks sunday"));
+    $wData = $db->fetch("SELECT 
+        SUM(CASE WHEN type='keteladanan' THEN 1 ELSE 0 END) as pos,
+        SUM(CASE WHEN type='pelanggaran' THEN 1 ELSE 0 END) as neg
+        FROM behavior_records WHERE recorded_by = ? AND incident_date BETWEEN ? AND ?", [Auth::getUserId(), $wStart, $wEnd]);
+    $weeklyRecords[] = ['label' => 'Mg ' . (4-$i), 'pos' => (int)($wData['pos'] ?? 0), 'neg' => (int)($wData['neg'] ?? 0)];
+}
+
 include __DIR__ . '/../../templates/header.php';
 ?>
 
@@ -67,6 +80,28 @@ include __DIR__ . '/../../templates/header.php';
     </div>
 </div>
 
+
+<!-- Chart Section -->
+<div class="grid grid-cols-1 gap-6 mb-6">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 class="font-semibold text-gray-800 mb-4">Catatan Saya Per Minggu (4 Minggu Terakhir)</h3>
+        <canvas id="weeklyChart" height="150"></canvas>
+    </div>
+</div>
+<script>
+new Chart(document.getElementById('weeklyChart'), {
+    type: 'bar',
+    data: {
+        labels: [<?= implode(',', array_map(fn($w) => "'".$w['label']."'", $weeklyRecords)) ?>],
+        datasets: [
+            {label:'Keteladanan', data:[<?= implode(',', array_column($weeklyRecords, 'pos')) ?>], backgroundColor:'#10b981'},
+            {label:'Pelanggaran', data:[<?= implode(',', array_column($weeklyRecords, 'neg')) ?>], backgroundColor:'#ef4444'}
+        ]
+    },
+    options: {responsive:true, plugins:{legend:{position:'bottom'}}, scales:{y:{beginAtZero:true}}}
+});
+</script>
+
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- My Classes -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -87,6 +122,7 @@ include __DIR__ . '/../../templates/header.php';
             <?php endif; ?>
         </div>
     </div>
+
 
     <!-- Recent Records -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">

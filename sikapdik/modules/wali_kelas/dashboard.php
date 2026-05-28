@@ -12,6 +12,7 @@ $db = Database::getInstance();
 $classId = $_SESSION['class_id'] ?? 0;
 $className = $_SESSION['class_name'] ?? '';
 $today = date('Y-m-d');
+$monthStart = date('Y-m-01');
 
 // Class stats
 $totalStudents = $db->count('students', 'class_id = ? AND is_active = 1', [$classId]);
@@ -29,11 +30,24 @@ $weekBehavior = $db->fetchAll("SELECT br.*, s.full_name, bc.category_name
 // Pending teacher notes
 $pendingNotes = $db->count('behavior_records', "recorder_role = 'guru_mapel' AND validation_status = 'pending' AND student_id IN (SELECT id FROM students WHERE class_id = ?)", [$classId]);
 
+
 // Students needing follow-up
 $needsFollowUp = $db->fetchAll("SELECT s.full_name, s.nis, COUNT(br.id) as violation_count 
     FROM behavior_records br JOIN students s ON br.student_id = s.id 
     WHERE s.class_id = ? AND br.type = 'pelanggaran' AND br.validation_status = 'approved' AND br.incident_date >= ?
     GROUP BY s.id HAVING violation_count >= 3 ORDER BY violation_count DESC LIMIT 5", [$classId, $weekStart]);
+
+// --- Chart Data: Top 5 students by keteladanan points ---
+$topStudents = $db->fetchAll("SELECT s.full_name, SUM(br.points) as total FROM behavior_records br JOIN students s ON br.student_id = s.id WHERE s.class_id = ? AND br.type='keteladanan' AND br.validation_status='approved' AND br.incident_date >= ? GROUP BY s.id ORDER BY total DESC LIMIT 5", [$classId, $monthStart]);
+
+// --- Chart Data: Attendance distribution this month ---
+$attDist = $db->fetch("SELECT 
+    SUM(CASE WHEN status='hadir' THEN 1 ELSE 0 END) as hadir,
+    SUM(CASE WHEN status='terlambat' THEN 1 ELSE 0 END) as terlambat,
+    SUM(CASE WHEN status='sakit' THEN 1 ELSE 0 END) as sakit,
+    SUM(CASE WHEN status='izin' THEN 1 ELSE 0 END) as izin,
+    SUM(CASE WHEN status='alpa' THEN 1 ELSE 0 END) as alpa
+    FROM attendances WHERE class_id = ? AND date BETWEEN ? AND ?", [$classId, $monthStart, date('Y-m-t')]);
 
 include __DIR__ . '/../../templates/header.php';
 ?>
@@ -51,6 +65,7 @@ include __DIR__ . '/../../templates/header.php';
         </div>
     </div>
 </div>
+
 
 <!-- Stats -->
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
@@ -72,6 +87,37 @@ include __DIR__ . '/../../templates/header.php';
     </div>
 </div>
 
+<!-- Charts Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 class="font-semibold text-gray-800 mb-4">Top 5 Siswa Keteladanan</h3>
+        <canvas id="topStudentsChart" height="200"></canvas>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 class="font-semibold text-gray-800 mb-4">Distribusi Presensi Bulan Ini</h3>
+        <canvas id="attDistChart" height="200"></canvas>
+    </div>
+</div>
+<script>
+new Chart(document.getElementById('topStudentsChart'), {
+    type: 'bar',
+    data: {
+        labels: [<?= implode(',', array_map(fn($s) => "'".addslashes($s['full_name'])."'", $topStudents)) ?>],
+        datasets: [{label:'Poin Keteladanan', data:[<?= implode(',', array_column($topStudents, 'total')) ?>], backgroundColor:'#10b981'}]
+    },
+    options: {indexAxis:'y', responsive:true, plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true}}}
+});
+
+new Chart(document.getElementById('attDistChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Hadir', 'Terlambat', 'Sakit', 'Izin', 'Alpa'],
+        datasets: [{data:[<?= (int)($attDist['hadir'] ?? 0) ?>, <?= (int)($attDist['terlambat'] ?? 0) ?>, <?= (int)($attDist['sakit'] ?? 0) ?>, <?= (int)($attDist['izin'] ?? 0) ?>, <?= (int)($attDist['alpa'] ?? 0) ?>], backgroundColor:['#10b981','#f59e0b','#3b82f6','#8b5cf6','#ef4444']}]
+    },
+    options: {responsive:true, plugins:{legend:{position:'bottom'}}}
+});
+</script>
+
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- This Week Behavior -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -92,6 +138,7 @@ include __DIR__ . '/../../templates/header.php';
             <?php endif; ?>
         </div>
     </div>
+
 
     <!-- Needs Follow-up -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
