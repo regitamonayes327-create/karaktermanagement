@@ -121,6 +121,60 @@ try {
 // Log
 Auth::logActivity('scan_attendance', 'attendance', "Presensi QR: {$student['full_name']} - {$status}");
 
+// AUTO POINTS: Record behavior based on attendance status
+try {
+    // Calculate late minutes
+    $lateMinutes = 0;
+    if ($status === 'terlambat') {
+        $lateSeconds = strtotime($currentTime) - strtotime($lateThreshold);
+        $lateMinutes = max(1, ceil($lateSeconds / 60));
+    }
+
+    // Find or create appropriate behavior category
+    if ($status === 'terlambat') {
+        // Find "Terlambat" pelanggaran category
+        $catTerlambat = $db->fetch("SELECT id FROM behavior_categories WHERE type = 'pelanggaran' AND category_name LIKE '%erlambat%' AND is_active = 1 LIMIT 1");
+        $categoryId = $catTerlambat['id'] ?? null;
+        
+        if ($categoryId) {
+            $db->insert('behavior_records', [
+                'student_id' => $student['id'],
+                'category_id' => $categoryId,
+                'type' => 'pelanggaran',
+                'points' => -3,
+                'description' => "Terlambat {$lateMinutes} menit (scan QR pukul " . date('H:i') . ")",
+                'incident_date' => $today,
+                'recorded_by' => Auth::getUserId(),
+                'recorder_role' => Auth::getRole() === 'admin' ? 'admin' : 'wali_kelas',
+                'validation_status' => 'approved',
+                'show_to_parent' => 1
+            ]);
+        }
+    } else {
+        // Hadir tepat waktu = keteladanan +3
+        $catDisiplin = $db->fetch("SELECT id FROM behavior_categories WHERE type = 'keteladanan' AND (category_name LIKE '%isiplin%' OR category_name LIKE '%epat waktu%') AND is_active = 1 LIMIT 1");
+        $categoryId = $catDisiplin['id'] ?? null;
+        
+        if ($categoryId) {
+            $db->insert('behavior_records', [
+                'student_id' => $student['id'],
+                'category_id' => $categoryId,
+                'type' => 'keteladanan',
+                'points' => 3,
+                'description' => "Hadir tepat waktu (scan QR pukul " . date('H:i') . ")",
+                'incident_date' => $today,
+                'recorded_by' => Auth::getUserId(),
+                'recorder_role' => Auth::getRole() === 'admin' ? 'admin' : 'wali_kelas',
+                'validation_status' => 'approved',
+                'show_to_parent' => 0
+            ]);
+        }
+    }
+} catch (Exception $e) {
+    // Silent fail - attendance already recorded, point recording is bonus
+    error_log("Auto-point error: " . $e->getMessage());
+}
+
 // Check for repeated lateness this week
 if ($status === 'terlambat') {
     $weekStart = date('Y-m-d', strtotime('monday this week'));
