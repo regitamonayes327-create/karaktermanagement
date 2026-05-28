@@ -12,6 +12,11 @@ define('PAGE_TITLE', 'Rapor Karakter');
 
 $db = Database::getInstance();
 
+// School settings for header
+$schoolName = $db->fetchColumn("SELECT setting_value FROM settings WHERE setting_key = 'school_name'") ?: SCHOOL_NAME;
+$schoolAddress = $db->fetchColumn("SELECT setting_value FROM settings WHERE setting_key = 'school_address'") ?: '';
+$schoolLogo = $db->fetchColumn("SELECT setting_value FROM settings WHERE setting_key = 'school_logo'") ?: '';
+
 // Get active academic year
 $activeYear = $db->fetch("SELECT * FROM academic_years WHERE is_active = 1 LIMIT 1");
 $semesterStart = $activeYear['start_date'] ?? date('Y-01-01');
@@ -287,6 +292,76 @@ include __DIR__ . '/../../templates/header.php';
         <p>Tidak ada siswa di kelas ini.</p>
     </div>
     <?php else: ?>
+
+    <?php
+    $classTotal = ['positive' => 0, 'negative' => 0, 'net' => 0];
+    foreach ($classSummary as $cs) {
+        $classTotal['positive'] += $cs['total_positive'];
+        $classTotal['negative'] += $cs['total_negative'];
+        $classTotal['net'] += $cs['net_points'];
+    }
+    // Count grades
+    $gradeCount = ['A' => 0, 'B' => 0, 'C' => 0, 'D' => 0];
+    foreach ($classSummary as $cs) { $gradeCount[$cs['grade'][0]]++; }
+    ?>
+
+    <!-- Class Total Points -->
+    <div class="grid grid-cols-3 gap-4 mb-6">
+        <div class="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
+            <p class="text-3xl font-bold text-green-600">+<?= $classTotal['positive'] ?></p>
+            <p class="text-sm text-gray-600">Total Keteladanan</p>
+        </div>
+        <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
+            <p class="text-3xl font-bold text-red-600">-<?= $classTotal['negative'] ?></p>
+            <p class="text-sm text-gray-600">Total Pelanggaran</p>
+        </div>
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
+            <p class="text-3xl font-bold text-blue-600"><?= $classTotal['net'] ?></p>
+            <p class="text-sm text-gray-600">Poin Total Kelas</p>
+        </div>
+    </div>
+
+    <!-- Grade Distribution Chart -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h4 class="font-semibold text-gray-800 mb-4">Distribusi Predikat Karakter</h4>
+            <canvas id="gradeChart" height="200"></canvas>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h4 class="font-semibold text-gray-800 mb-4">Perbandingan Poin Kelas</h4>
+            <canvas id="pointsChart" height="200"></canvas>
+        </div>
+    </div>
+
+    <script>
+    // Grade Distribution Pie Chart
+    new Chart(document.getElementById('gradeChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['A (Sangat Baik)', 'B (Baik)', 'C (Cukup)', 'D (Perlu Pembinaan)'],
+            datasets: [{
+                data: [<?= $gradeCount['A'] ?>, <?= $gradeCount['B'] ?>, <?= $gradeCount['C'] ?>, <?= $gradeCount['D'] ?>],
+                backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    });
+
+    // Points Comparison Bar Chart
+    new Chart(document.getElementById('pointsChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Keteladanan', 'Pelanggaran', 'Total Bersih'],
+            datasets: [{
+                label: 'Poin',
+                data: [<?= $classTotal['positive'] ?>, <?= $classTotal['negative'] ?>, <?= $classTotal['net'] ?>],
+                backgroundColor: ['#10b981', '#ef4444', '#3b82f6'],
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    });
+    </script>
+
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead class="bg-gray-50">
@@ -299,7 +374,6 @@ include __DIR__ . '/../../templates/header.php';
                     <th class="px-3 py-2 text-center text-blue-700">Skor Bersih</th>
                     <th class="px-3 py-2 text-center text-gray-700">Predikat</th>
                     <th class="px-3 py-2 text-center text-gray-700">Kehadiran</th>
-                    <th class="px-3 py-2 text-center text-gray-700">Tren</th>
                     <th class="px-3 py-2 text-center text-gray-700 no-print">Aksi</th>
                 </tr>
             </thead>
@@ -318,11 +392,6 @@ include __DIR__ . '/../../templates/header.php';
                         </span>
                     </td>
                     <td class="px-3 py-2 text-center"><?= $row['total_attendance'] ?> hari</td>
-                    <td class="px-3 py-2 text-center">
-                        <span class="<?= $row['trend'][1] ?>">
-                            <i class="<?= $row['trend'][2] ?>"></i> <?= $row['trend'][0] ?>
-                        </span>
-                    </td>
                     <td class="px-3 py-2 text-center no-print">
                         <a href="?show=1&class_id=<?= $classId ?>&student_id=<?= $row['student']['id'] ?>" class="text-blue-600 hover:text-blue-800 text-xs">
                             <i class="fas fa-eye"></i> Detail
@@ -347,12 +416,24 @@ include __DIR__ . '/../../templates/header.php';
 
 <!-- Report Card -->
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 print-area" id="reportCard">
-    <!-- School Header -->
+    <!-- School Header with Logo -->
     <div class="text-center border-b-2 border-gray-800 pb-4 mb-6">
-        <h2 class="text-xl font-bold text-gray-800 uppercase"><?= SCHOOL_NAME ?></h2>
-        <p class="text-sm text-gray-600">Sistem Informasi Pemantauan Perilaku Siswa (SIKAPDIK)</p>
-        <h3 class="text-lg font-bold text-blue-700 mt-2">RAPOR KARAKTER SISWA</h3>
-        <p class="text-sm text-gray-600"><?= htmlspecialchars($semesterName) ?></p>
+        <div class="flex items-center justify-center gap-4">
+            <?php if ($schoolLogo): ?>
+            <img src="<?= BASE_URL ?>uploads/<?= htmlspecialchars($schoolLogo) ?>" alt="Logo" class="w-16 h-16 object-contain opacity-90">
+            <?php endif; ?>
+            <div>
+                <h2 class="text-xl font-bold text-gray-800 uppercase"><?= htmlspecialchars($schoolName) ?></h2>
+                <?php if ($schoolAddress): ?>
+                <p class="text-xs text-gray-600"><?= htmlspecialchars($schoolAddress) ?></p>
+                <?php endif; ?>
+                <h3 class="text-lg font-bold text-blue-700 mt-1">RAPOR KARAKTER SISWA</h3>
+                <p class="text-sm text-gray-600"><?= htmlspecialchars($semesterName) ?></p>
+            </div>
+            <?php if ($schoolLogo): ?>
+            <img src="<?= BASE_URL ?>uploads/<?= htmlspecialchars($schoolLogo) ?>" alt="Logo" class="w-16 h-16 object-contain opacity-0">
+            <?php endif; ?>
+        </div>
     </div>
 
     <!-- Student Info -->
@@ -533,29 +614,6 @@ include __DIR__ . '/../../templates/header.php';
     </div>
     <?php endif; ?>
 
-
-    <!-- Development Trend -->
-    <div class="mb-6">
-        <h4 class="font-bold text-gray-800 mb-2 border-b border-gray-200 pb-1"><i class="fas fa-chart-line text-indigo-600"></i> Tren Perkembangan</h4>
-        <div class="flex items-center gap-4 p-3 rounded-lg bg-gray-50">
-            <div class="text-center">
-                <p class="text-xs text-gray-500">Periode Sebelumnya</p>
-                <p class="text-lg font-bold text-gray-700"><?= $reportData['previousNet'] ?> poin</p>
-            </div>
-            <div class="text-2xl <?= $reportData['trend'][1] ?>">
-                <i class="<?= $reportData['trend'][2] ?>"></i>
-            </div>
-            <div class="text-center">
-                <p class="text-xs text-gray-500">Periode Sekarang</p>
-                <p class="text-lg font-bold text-gray-700"><?= $reportData['points']['net_points'] ?> poin</p>
-            </div>
-            <div class="ml-4">
-                <span class="px-3 py-1 rounded-full text-sm font-medium <?= $reportData['trend'][1] ?>">
-                    <i class="<?= $reportData['trend'][2] ?>"></i> <?= $reportData['trend'][0] ?>
-                </span>
-            </div>
-        </div>
-    </div>
 
     <!-- Teacher Recommendation -->
     <div class="mb-6">
