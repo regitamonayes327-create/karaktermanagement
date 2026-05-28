@@ -34,6 +34,18 @@ $pendingFollowUps = $db->count('follow_ups', "status = 'belum_diproses'");
 // Recent activities
 $recentLogs = $db->fetchAll("SELECT al.*, u.full_name FROM audit_logs al LEFT JOIN users u ON al.user_id = u.id ORDER BY al.created_at DESC LIMIT 10");
 
+// --- Chart Data: 7-day attendance ---
+$last7Days = [];
+for ($i = 6; $i >= 0; $i--) {
+    $date = date('Y-m-d', strtotime("-{$i} days"));
+    $dayData = $db->fetch("SELECT 
+        SUM(CASE WHEN status IN ('hadir','terlambat') THEN 1 ELSE 0 END) as present,
+        SUM(CASE WHEN status = 'terlambat' THEN 1 ELSE 0 END) as late,
+        SUM(CASE WHEN status = 'alpa' THEN 1 ELSE 0 END) as absent
+        FROM attendances WHERE date = ?", [$date]);
+    $last7Days[] = ['date' => date('d/m', strtotime($date)), 'present' => (int)($dayData['present'] ?? 0), 'late' => (int)($dayData['late'] ?? 0), 'absent' => (int)($dayData['absent'] ?? 0)];
+}
+
 include __DIR__ . '/../../templates/header.php';
 ?>
 
@@ -129,6 +141,40 @@ include __DIR__ . '/../../templates/header.php';
         </div>
     </div>
 </div>
+
+<!-- Charts Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 class="font-semibold text-gray-800 mb-4">Presensi 7 Hari Terakhir</h3>
+        <canvas id="attendanceChart" height="200"></canvas>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 class="font-semibold text-gray-800 mb-4">Perilaku Bulan Ini</h3>
+        <canvas id="behaviorChart" height="200"></canvas>
+    </div>
+</div>
+<script>
+new Chart(document.getElementById('attendanceChart'), {
+    type: 'line',
+    data: {
+        labels: [<?= implode(',', array_map(fn($d) => "'".$d['date']."'", $last7Days)) ?>],
+        datasets: [
+            {label:'Hadir', data:[<?= implode(',', array_column($last7Days, 'present')) ?>], borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.1)', fill:true, tension:0.3},
+            {label:'Terlambat', data:[<?= implode(',', array_column($last7Days, 'late')) ?>], borderColor:'#f59e0b', backgroundColor:'rgba(245,158,11,0.1)', fill:true, tension:0.3},
+            {label:'Alpa', data:[<?= implode(',', array_column($last7Days, 'absent')) ?>], borderColor:'#ef4444', backgroundColor:'rgba(239,68,68,0.1)', fill:true, tension:0.3}
+        ]
+    },
+    options: {responsive:true, plugins:{legend:{position:'bottom'}}, scales:{y:{beginAtZero:true}}}
+});
+new Chart(document.getElementById('behaviorChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Keteladanan (+)', 'Pelanggaran (-)'],
+        datasets: [{data:[<?= $monthPositive ?>, <?= $monthNegative ?>], backgroundColor:['#10b981','#ef4444']}]
+    },
+    options: {responsive:true, plugins:{legend:{position:'bottom'}}}
+});
+</script>
 
 <!-- Quick Actions & Recent Activity -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">

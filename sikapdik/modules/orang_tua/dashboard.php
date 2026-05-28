@@ -30,6 +30,7 @@ if (!$child && !empty($children)) { $child = $children[0]; $selectedChild = $chi
 $monthStart = date('Y-m-01');
 $monthEnd = date('Y-m-t');
 
+
 // Child data
 $attendanceThisMonth = [];
 $positiveRecords = [];
@@ -68,6 +69,13 @@ if ($child) {
     $notifications = $db->fetchAll("SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 5", [Auth::getUserId()]);
 }
 
+
+// --- Chart Data: Child behavior points proportion ---
+$childPoints = $db->fetch("SELECT 
+    COALESCE(SUM(CASE WHEN type='keteladanan' THEN points ELSE 0 END),0) as pos,
+    COALESCE(SUM(CASE WHEN type='pelanggaran' THEN ABS(points) ELSE 0 END),0) as neg
+    FROM behavior_records WHERE student_id = ? AND validation_status='approved' AND incident_date BETWEEN ? AND ?", [$selectedChild, $monthStart, $monthEnd]);
+
 include __DIR__ . '/../../templates/header.php';
 ?>
 
@@ -94,6 +102,7 @@ include __DIR__ . '/../../templates/header.php';
         </div>
     </div>
 </div>
+
 
 <!-- Attendance Summary -->
 <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
@@ -139,6 +148,7 @@ include __DIR__ . '/../../templates/header.php';
             <?php endif; ?>
         </div>
     </div>
+
 
     <!-- Pelanggaran Records (visible to parent) -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -190,6 +200,25 @@ include __DIR__ . '/../../templates/header.php';
     </div>
     <?php endif; ?>
 </div>
+
+
+<!-- Chart: Child Behavior Points -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 class="font-semibold text-gray-800 mb-4">Proporsi Poin Perilaku Bulan Ini</h3>
+        <canvas id="childBehaviorChart" height="200"></canvas>
+    </div>
+</div>
+<script>
+new Chart(document.getElementById('childBehaviorChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Keteladanan (+)', 'Pelanggaran (-)'],
+        datasets: [{data:[<?= (int)($childPoints['pos'] ?? 0) ?>, <?= (int)($childPoints['neg'] ?? 0) ?>], backgroundColor:['#10b981','#ef4444']}]
+    },
+    options: {responsive:true, plugins:{legend:{position:'bottom'}}}
+});
+</script>
 
 <?php else: ?>
 <div class="text-center py-12 text-gray-500">

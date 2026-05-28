@@ -31,6 +31,7 @@ $monthNegative = $db->count('behavior_records', "type = 'pelanggaran' AND valida
 // Pending follow-ups
 $pendingFollowUps = $db->count('follow_ups', "status IN ('belum_diproses','dalam_pemantauan')");
 
+
 // Students needing attention (high negative points)
 $attentionStudents = $db->fetchAll("SELECT s.id, s.full_name, s.nis, c.class_name, c.grade_level,
     COALESCE(SUM(CASE WHEN br.type = 'pelanggaran' THEN ABS(br.points) ELSE 0 END), 0) as neg_points,
@@ -51,6 +52,25 @@ $classStats = $db->fetchAll("SELECT c.class_name, c.grade_level,
     (SELECT COUNT(*) FROM attendances a JOIN students st ON a.student_id = st.id WHERE st.class_id = c.id AND a.date = ? AND a.status = 'terlambat') as late_count,
     (SELECT COALESCE(SUM(CASE WHEN br2.type = 'keteladanan' THEN br2.points ELSE 0 END), 0) FROM behavior_records br2 JOIN students st2 ON br2.student_id = st2.id WHERE st2.class_id = c.id AND br2.incident_date BETWEEN ? AND ? AND br2.validation_status = 'approved') as positive_points
     FROM classes c WHERE c.is_active = 1 ORDER BY c.grade_level, c.class_name", [$today, $monthStart, $monthEnd]);
+
+// --- Chart Data: Per-class behavior comparison ---
+$classBehavior = $db->fetchAll("SELECT c.class_name, c.grade_level,
+    COALESCE(SUM(CASE WHEN br.type='keteladanan' THEN br.points ELSE 0 END),0) as positive,
+    COALESCE(SUM(CASE WHEN br.type='pelanggaran' THEN ABS(br.points) ELSE 0 END),0) as negative
+    FROM classes c LEFT JOIN students s ON s.class_id = c.id LEFT JOIN behavior_records br ON br.student_id = s.id AND br.validation_status='approved' AND br.incident_date BETWEEN ? AND ?
+    WHERE c.is_active=1 GROUP BY c.id ORDER BY c.grade_level, c.class_name", [$monthStart, $monthEnd]);
+
+
+// --- Chart Data: Character grade distribution ---
+$gradeDistribution = $db->fetch("SELECT 
+    SUM(CASE WHEN (COALESCE(pos.total,0) - COALESCE(neg.total,0)) >= 80 THEN 1 ELSE 0 END) as grade_a,
+    SUM(CASE WHEN (COALESCE(pos.total,0) - COALESCE(neg.total,0)) BETWEEN 60 AND 79 THEN 1 ELSE 0 END) as grade_b,
+    SUM(CASE WHEN (COALESCE(pos.total,0) - COALESCE(neg.total,0)) BETWEEN 40 AND 59 THEN 1 ELSE 0 END) as grade_c,
+    SUM(CASE WHEN (COALESCE(pos.total,0) - COALESCE(neg.total,0)) < 40 THEN 1 ELSE 0 END) as grade_d
+    FROM students s
+    LEFT JOIN (SELECT student_id, SUM(points) as total FROM behavior_records WHERE type='keteladanan' AND validation_status='approved' AND incident_date BETWEEN ? AND ? GROUP BY student_id) pos ON pos.student_id = s.id
+    LEFT JOIN (SELECT student_id, SUM(ABS(points)) as total FROM behavior_records WHERE type='pelanggaran' AND validation_status='approved' AND incident_date BETWEEN ? AND ? GROUP BY student_id) neg ON neg.student_id = s.id
+    WHERE s.is_active = 1", [$monthStart, $monthEnd, $monthStart, $monthEnd]);
 
 include __DIR__ . '/../../templates/header.php';
 ?>
@@ -81,6 +101,7 @@ include __DIR__ . '/../../templates/header.php';
             </div>
         </div>
     </div>
+
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
         <div class="flex items-center justify-between">
             <div>
@@ -107,6 +128,40 @@ include __DIR__ . '/../../templates/header.php';
     </div>
 </div>
 
+<!-- Charts Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 class="font-semibold text-gray-800 mb-4">Perbandingan Perilaku Per Kelas</h3>
+        <canvas id="classBehaviorChart" height="200"></canvas>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 class="font-semibold text-gray-800 mb-4">Distribusi Predikat Karakter</h3>
+        <canvas id="gradeDistChart" height="200"></canvas>
+    </div>
+</div>
+
+<script>
+new Chart(document.getElementById('classBehaviorChart'), {
+    type: 'bar',
+    data: {
+        labels: [<?= implode(',', array_map(fn($c) => "'" . $c['grade_level'] . "-" . $c['class_name'] . "'", $classBehavior)) ?>],
+        datasets: [
+            {label:'Keteladanan', data:[<?= implode(',', array_column($classBehavior, 'positive')) ?>], backgroundColor:'#10b981'},
+            {label:'Pelanggaran', data:[<?= implode(',', array_column($classBehavior, 'negative')) ?>], backgroundColor:'#ef4444'}
+        ]
+    },
+    options: {responsive:true, plugins:{legend:{position:'bottom'}}, scales:{y:{beginAtZero:true}}}
+});
+new Chart(document.getElementById('gradeDistChart'), {
+    type: 'pie',
+    data: {
+        labels: ['A (Sangat Baik)', 'B (Baik)', 'C (Cukup)', 'D (Kurang)'],
+        datasets: [{data:[<?= (int)($gradeDistribution['grade_a'] ?? 0) ?>, <?= (int)($gradeDistribution['grade_b'] ?? 0) ?>, <?= (int)($gradeDistribution['grade_c'] ?? 0) ?>, <?= (int)($gradeDistribution['grade_d'] ?? 0) ?>], backgroundColor:['#10b981','#3b82f6','#f59e0b','#ef4444']}]
+    },
+    options: {responsive:true, plugins:{legend:{position:'bottom'}}}
+});
+</script>
+
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
     <!-- Students Needing Attention -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -132,6 +187,7 @@ include __DIR__ . '/../../templates/header.php';
             <?php endif; ?>
         </div>
     </div>
+
 
     <!-- Top Achievers -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
