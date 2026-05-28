@@ -1,7 +1,7 @@
 <?php
 /**
  * Parent/Guardian Management
- * SIKAPDIK
+ * SIKAPDIK - Efficient Version with Bulk Generation
  */
 require_once __DIR__ . '/../../config/app.php';
 Auth::requireRole(['admin']);
@@ -77,7 +77,83 @@ if (isPost() && Security::validateCSRF()) {
         $db->update('parents', ['is_active' => 0], 'id = ?', [$parentId]);
         setFlash('success', 'Data orang tua berhasil dinonaktifkan.');
         redirect('modules/admin/parents.php');
+    } elseif ($formAction === 'bulk_generate') {
+        // Find students without parents
+        $studentsWithoutParents = $db->fetchAll("SELECT s.id, s.nis, s.full_name FROM students s WHERE s.is_active = 1 AND s.id NOT IN (SELECT student_id FROM parent_student) ORDER BY s.full_name");
+        
+        $count = 0;
+        $credentials = [];
+        
+        foreach ($studentsWithoutParents as $student) {
+            $username = 'ortu_' . $student['nis'];
+            $rawPassword = 'Ortu@' . $student['nis'];
+            
+            // Check if username already exists
+            $existingUser = $db->fetch("SELECT id FROM users WHERE username = ?", [$username]);
+            if ($existingUser) {
+                $username = 'ortu_' . $student['nis'] . '_' . rand(10,99);
+            }
+            
+            // Create user
+            $userId = $db->insert('users', [
+                'username' => $username,
+                'password' => Security::hashPassword($rawPassword),
+                'full_name' => 'Orang Tua ' . $student['full_name'],
+                'role' => 'orang_tua',
+                'is_active' => 1
+            ]);
+            
+            // Create parent
+            $parentId = $db->insert('parents', [
+                'user_id' => $userId,
+                'full_name' => 'Orang Tua ' . $student['full_name'],
+                'relationship' => 'ayah',
+                'is_active' => 1
+            ]);
+            
+            // Link student
+            $db->insert('parent_student', ['parent_id' => $parentId, 'student_id' => $student['id']]);
+            
+            $credentials[] = ['student' => $student['full_name'], 'nis' => $student['nis'], 'username' => $username, 'password' => $rawPassword];
+            $count++;
+        }
+        
+        if ($count > 0) {
+            // Store credentials in session for download
+            $_SESSION['bulk_credentials'] = $credentials;
+            Auth::logActivity('bulk_generate_parents', 'parents', "Generate massal {$count} akun orang tua");
+            setFlash('success', "Berhasil membuat {$count} akun orang tua. <a href='?action=download_credentials' class='underline font-bold'>Download daftar username & password</a>");
+        } else {
+            setFlash('info', 'Semua siswa sudah memiliki orang tua yang terhubung.');
+        }
+        redirect('modules/admin/parents.php');
     }
+}
+
+// Handle credentials download
+if (get('action') === 'download_credentials' && !empty($_SESSION['bulk_credentials'])) {
+    header('Content-Type: text/plain; charset=utf-8');
+    header('Content-Disposition: attachment; filename="akun_orang_tua_sikapdik.txt"');
+    
+    echo "===================================================\n";
+    echo "DAFTAR AKUN ORANG TUA - SIKAPDIK\n";
+    echo SCHOOL_NAME . "\n";
+    echo "Digenerate: " . date('d/m/Y H:i') . "\n";
+    echo "===================================================\n\n";
+    echo str_pad("SISWA", 30) . str_pad("NIS", 10) . str_pad("USERNAME", 20) . "PASSWORD\n";
+    echo str_repeat("-", 80) . "\n";
+    
+    foreach ($_SESSION['bulk_credentials'] as $c) {
+        echo str_pad($c['student'], 30) . str_pad($c['nis'], 10) . str_pad($c['username'], 20) . $c['password'] . "\n";
+    }
+    
+    echo "\n===================================================\n";
+    echo "PENTING: Bagikan username & password ini ke masing-masing orang tua.\n";
+    echo "Sarankan orang tua untuk segera mengganti password setelah login pertama.\n";
+    echo "===================================================\n";
+    
+    unset($_SESSION['bulk_credentials']);
+    exit;
 }
 
 include __DIR__ . '/../../templates/header.php';
@@ -128,7 +204,7 @@ if ($action === 'add' || ($action === 'edit' && $id > 0)):
 
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Anak (Siswa)</label>
-                <select name="student_ids[]" multiple class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" size="5">
+                <select name="student_ids[]" multiple class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent combo-search" data-placeholder="Cari siswa..." size="5">
                     <?php foreach ($allStudents as $s): ?>
                     <option value="<?= $s['id'] ?>" <?= in_array($s['id'], $linkedIds) ? 'selected' : '' ?>><?= htmlspecialchars($s['full_name']) ?> (<?= $s['nis'] ?>) - <?= $s['class_name'] ?? 'Belum ada kelas' ?></option>
                     <?php endforeach; ?>
@@ -150,13 +226,13 @@ if ($action === 'add' || ($action === 'edit' && $id > 0)):
     $where = "p.is_active = 1";
     $params = [];
     if (!empty($search)) {
-        $where .= " AND (p.full_name LIKE ? OR p.phone LIKE ?)";
-        $params = ["%{$search}%", "%{$search}%"];
+        $where .= " AND (p.full_name LIKE ? OR p.phone LIKE ? OR u.username LIKE ?)";
+        $params = ["%{$search}%", "%{$search}%", "%{$search}%"];
     }
-    $total = $db->fetchColumn("SELECT COUNT(*) FROM parents p WHERE {$where}", $params);
+    $total = $db->fetchColumn("SELECT COUNT(DISTINCT p.id) FROM parents p LEFT JOIN users u ON p.user_id = u.id WHERE {$where}", $params);
     $pagination = paginate($total, $page, 15);
-    $parents = $db->fetchAll("SELECT p.*, GROUP_CONCAT(s.full_name SEPARATOR ', ') as children 
-        FROM parents p LEFT JOIN parent_student ps ON p.id = ps.parent_id LEFT JOIN students s ON ps.student_id = s.id 
+    $parents = $db->fetchAll("SELECT p.*, u.username, GROUP_CONCAT(s.full_name SEPARATOR ', ') as children 
+        FROM parents p LEFT JOIN users u ON p.user_id = u.id LEFT JOIN parent_student ps ON p.id = ps.parent_id LEFT JOIN students s ON ps.student_id = s.id 
         WHERE {$where} GROUP BY p.id ORDER BY p.full_name LIMIT {$pagination['per_page']} OFFSET {$pagination['offset']}", $params);
 ?>
 
@@ -166,12 +242,19 @@ if ($action === 'add' || ($action === 'edit' && $id > 0)):
             <h3 class="text-lg font-semibold text-gray-800">Daftar Orang Tua/Wali</h3>
             <p class="text-sm text-gray-500"><?= formatNumber($total) ?> data</p>
         </div>
-        <a href="?action=add" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm"><i class="fas fa-plus"></i> Tambah</a>
+        <div class="flex gap-2">
+            <form method="POST" class="inline" onsubmit="return confirm('Generate akun orang tua untuk semua siswa yang belum memiliki orang tua?\n\nUsername: ortu_[NIS]\nPassword: Ortu@[NIS]\n\nLanjutkan?')">
+                <?= Security::csrfField() ?>
+                <input type="hidden" name="form_action" value="bulk_generate">
+                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm"><i class="fas fa-magic"></i> Generate Massal</button>
+            </form>
+            <a href="?action=add" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm"><i class="fas fa-plus"></i> Tambah Manual</a>
+        </div>
     </div>
 
     <div class="p-4 border-b border-gray-50 bg-gray-50/50">
         <form method="GET" class="flex gap-3">
-            <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Cari nama/HP..." class="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm">
+            <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Cari nama/HP/username..." class="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm">
             <button type="submit" class="px-4 py-2 bg-gray-600 text-white rounded-lg text-sm"><i class="fas fa-search"></i></button>
         </form>
     </div>
@@ -180,6 +263,7 @@ if ($action === 'add' || ($action === 'edit' && $id > 0)):
         <table class="w-full text-sm">
             <thead class="bg-gray-50"><tr>
                 <th class="px-6 py-3 text-left font-medium text-gray-600">Nama</th>
+                <th class="px-6 py-3 text-left font-medium text-gray-600">Username</th>
                 <th class="px-6 py-3 text-left font-medium text-gray-600">Hubungan</th>
                 <th class="px-6 py-3 text-left font-medium text-gray-600">No. HP</th>
                 <th class="px-6 py-3 text-left font-medium text-gray-600">Anak</th>
@@ -189,6 +273,7 @@ if ($action === 'add' || ($action === 'edit' && $id > 0)):
                 <?php foreach ($parents as $p): ?>
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-3 font-medium text-gray-800"><?= htmlspecialchars($p['full_name']) ?></td>
+                    <td class="px-6 py-3 text-gray-600"><code class="bg-gray-100 px-2 py-0.5 rounded text-xs"><?= htmlspecialchars($p['username'] ?? '-') ?></code></td>
                     <td class="px-6 py-3"><?= ucfirst($p['relationship']) ?></td>
                     <td class="px-6 py-3 text-gray-600"><?= htmlspecialchars($p['phone'] ?? '-') ?></td>
                     <td class="px-6 py-3 text-gray-600 text-xs"><?= htmlspecialchars($p['children'] ?? '-') ?></td>
@@ -204,7 +289,7 @@ if ($action === 'add' || ($action === 'edit' && $id > 0)):
                 </tr>
                 <?php endforeach; ?>
                 <?php if (empty($parents)): ?>
-                <tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">Belum ada data orang tua.</td></tr>
+                <tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">Belum ada data orang tua.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>
