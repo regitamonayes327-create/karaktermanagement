@@ -16,8 +16,6 @@ if (isPost() && Security::validateCSRF()) {
         'school_address' => post('school_address'),
         'school_phone' => post('school_phone'),
         'school_email' => post('school_email'),
-        'active_academic_year' => post('active_academic_year'),
-        'active_semester' => post('active_semester'),
         'late_threshold_time' => post('late_threshold_time'),
         'school_start_time' => post('school_start_time'),
         'late_threshold_global' => post('late_threshold_global', '1'),
@@ -32,6 +30,37 @@ if (isPost() && Security::validateCSRF()) {
         } else {
             $db->insert('settings', ['setting_key' => $key, 'setting_value' => $value, 'setting_group' => 'general']);
         }
+    }
+
+    // Sync academic year from academic_years table
+    $activeYearId = (int) post('active_academic_year_id');
+    if ($activeYearId) {
+        // Deactivate all
+        $db->update('academic_years', ['is_active' => 0], '1=1');
+        // Activate selected
+        $db->update('academic_years', ['is_active' => 1], 'id = ?', [$activeYearId]);
+        // Sync to settings table
+        $activeYear = $db->fetch("SELECT year_name, semester FROM academic_years WHERE id = ?", [$activeYearId]);
+        if ($activeYear) {
+            // Update settings for backward compatibility
+            $db->update('settings', ['setting_value' => $activeYear['year_name']], "setting_key = 'active_academic_year'");
+            $db->update('settings', ['setting_value' => $activeYear['semester']], "setting_key = 'active_semester'");
+        }
+    }
+
+    // Handle new academic year creation
+    $newYearName = Security::clean(post('new_year_name'));
+    $newSemester = Security::clean(post('new_semester'));
+    $newStartDate = Security::clean(post('new_start_date'));
+    $newEndDate = Security::clean(post('new_end_date'));
+    if (!empty($newYearName) && !empty($newStartDate) && !empty($newEndDate)) {
+        $db->insert('academic_years', [
+            'year_name' => $newYearName,
+            'semester' => $newSemester ?: '1',
+            'start_date' => $newStartDate,
+            'end_date' => $newEndDate,
+            'is_active' => 0
+        ]);
     }
 
     // Handle logo upload
@@ -103,19 +132,61 @@ include __DIR__ . '/../../templates/header.php';
             <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                 <i class="fas fa-calendar text-green-600"></i> Pengaturan Akademik
             </h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Tahun Ajaran Aktif</label>
-                    <input type="text" name="active_academic_year" value="<?= htmlspecialchars($s['active_academic_year'] ?? '') ?>" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="2024/2025">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Semester Aktif</label>
-                    <select name="active_semester" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <option value="1" <?= ($s['active_semester'] ?? '') === '1' ? 'selected' : '' ?>>Semester 1 (Ganjil)</option>
-                        <option value="2" <?= ($s['active_semester'] ?? '') === '2' ? 'selected' : '' ?>>Semester 2 (Genap)</option>
-                    </select>
-                </div>
+            
+            <?php
+            $academicYears = $db->fetchAll("SELECT * FROM academic_years ORDER BY start_date DESC");
+            $activeYear = null;
+            foreach ($academicYears as $ay) { if ($ay['is_active']) { $activeYear = $ay; break; } }
+            ?>
+            
+            <!-- Current Active Year -->
+            <?php if ($activeYear): ?>
+            <div class="mb-4 p-3 rounded-lg bg-green-50 border border-green-200">
+                <p class="text-sm text-green-800"><i class="fas fa-check-circle"></i> <strong>Tahun Ajaran Aktif:</strong> <?= htmlspecialchars($activeYear['year_name']) ?> - Semester <?= $activeYear['semester'] ?> (<?= formatDate($activeYear['start_date'], 'short') ?> s/d <?= formatDate($activeYear['end_date'], 'short') ?>)</p>
             </div>
+            <?php endif; ?>
+
+            <!-- Select Active Year -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Tahun Ajaran Aktif</label>
+                <select name="active_academic_year_id" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">-- Pilih --</option>
+                    <?php foreach ($academicYears as $ay): ?>
+                    <option value="<?= $ay['id'] ?>" <?= $ay['is_active'] ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($ay['year_name']) ?> - Semester <?= $ay['semester'] ?> (<?= formatDate($ay['start_date'], 'short') ?> s/d <?= formatDate($ay['end_date'], 'short') ?>) <?= $ay['is_active'] ? '✓ AKTIF' : '' ?>
+                    </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <!-- Add New Academic Year -->
+            <details class="border border-gray-200 rounded-lg p-4">
+                <summary class="text-sm font-medium text-gray-700 cursor-pointer hover:text-blue-600">
+                    <i class="fas fa-plus-circle"></i> Tambah Tahun Ajaran Baru
+                </summary>
+                <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-gray-600 mb-1">Nama Tahun Ajaran</label>
+                        <input type="text" name="new_year_name" placeholder="Contoh: 2025/2026" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-600 mb-1">Semester</label>
+                        <select name="new_semester" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                            <option value="1">Semester 1 (Ganjil)</option>
+                            <option value="2">Semester 2 (Genap)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-600 mb-1">Tanggal Mulai</label>
+                        <input type="date" name="new_start_date" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-600 mb-1">Tanggal Selesai</label>
+                        <input type="date" name="new_end_date" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                    </div>
+                </div>
+                <p class="text-xs text-gray-400 mt-2">Isi semua field di atas lalu klik "Simpan Pengaturan" untuk menambahkan tahun ajaran baru.</p>
+            </details>
         </div>
 
         <!-- Attendance Settings -->

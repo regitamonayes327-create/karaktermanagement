@@ -15,6 +15,7 @@ $menus = [
         ['icon' => 'fas fa-tachometer-alt', 'label' => 'Dashboard', 'url' => 'modules/admin/dashboard.php', 'id' => 'dashboard'],
         ['icon' => 'fas fa-users', 'label' => 'Data Pengguna', 'url' => 'modules/admin/users.php', 'id' => 'users'],
         ['icon' => 'fas fa-chalkboard-teacher', 'label' => 'Data Guru', 'url' => 'modules/admin/teachers.php', 'id' => 'teachers'],
+        ['icon' => 'fas fa-chalkboard', 'label' => 'Penugasan Guru', 'url' => 'modules/admin/teacher_assignments.php', 'id' => 'teacher_assignments'],
         ['icon' => 'fas fa-school', 'label' => 'Data Kelas', 'url' => 'modules/admin/classes.php', 'id' => 'classes'],
         ['icon' => 'fas fa-user-graduate', 'label' => 'Data Siswa', 'url' => 'modules/admin/students.php', 'id' => 'students'],
         ['icon' => 'fas fa-user-friends', 'label' => 'Data Orang Tua', 'url' => 'modules/admin/parents.php', 'id' => 'parents'],
@@ -87,6 +88,7 @@ $roleMenus = $menus[$currentRole] ?? [];
         .sidebar-item:hover { background: rgba(59, 130, 246, 0.05); }
         @media (max-width: 768px) { .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } }
     </style>
+    <script src="<?= BASE_URL ?>assets/js/combo-search.js" defer></script>
 </head>
 <body class="bg-gray-50 font-sans">
 <div class="flex h-screen overflow-hidden">

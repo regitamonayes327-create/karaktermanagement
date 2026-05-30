@@ -106,6 +106,8 @@ if ($action === 'add'):
             <!-- Siswa -->
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Siswa *</label>
+                <select name="student_id" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent combo-search" required data-placeholder="Ketik nama siswa...">
+                    <option value="">-- Pilih --</option>
                 <select name="student_id" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent" required>
                     <option value="">-- Pilih Siswa --</option>
                     <?php foreach ($students as $s): ?>
