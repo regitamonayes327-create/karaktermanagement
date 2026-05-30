@@ -1,0 +1,210 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml><![endif]-->
+<style>
+body { font-family: 'Times New Roman', serif; font-size: 12pt; margin: 2.54cm; line-height: 1.5; }
+h1 { font-size: 14pt; font-weight: bold; text-align: center; margin-bottom: 5pt; }
+h2 { font-size: 13pt; font-weight: bold; margin-top: 18pt; margin-bottom: 6pt; }
+h3 { font-size: 12pt; font-weight: bold; margin-top: 12pt; margin-bottom: 6pt; }
+table { border-collapse: collapse; width: 100%; margin: 10pt 0; }
+table, th, td { border: 1px solid black; }
+th { background-color: #f0f0f0; padding: 6pt; font-weight: bold; text-align: center; font-size: 11pt; }
+td { padding: 6pt; font-size: 11pt; vertical-align: top; }
+.center { text-align: center; }
+.no-border { border: none; }
+.no-border td { border: none; padding: 3pt; }
+p { margin: 6pt 0; text-align: justify; }
+.page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+<h1>INSTRUMEN VALIDASI AHLI MEDIA</h1>
+<h1 style="font-size:12pt; font-weight:normal;">Pengembangan Aplikasi Pemantauan Perilaku Siswa Berbasis Website<br>dalam Mendukung Manajemen Pembinaan Karakter di Sekolah Dasar</h1>
+
+<br>
+<table class="no-border" style="width:70%">
+<tr><td style="width:30%">Nama Validator</td><td>: ........................................................</td></tr>
+<tr><td>Instansi</td><td>: ........................................................</td></tr>
+<tr><td>Tanggal</td><td>: ........................................................</td></tr>
+</table>
+
+<h3>Petunjuk Pengisian:</h3>
+<p>Berikan penilaian terhadap aplikasi SIKAPDIK (Sistem Informasi Pemantauan Perilaku Siswa) dengan memberikan tanda centang (✓) pada kolom skor yang sesuai dengan kriteria berikut:</p>
+<table class="no-border" style="width:60%">
+<tr><td style="width:15%"><b>Skor 5</b></td><td>= Sangat Baik</td></tr>
+<tr><td><b>Skor 4</b></td><td>= Baik</td></tr>
+<tr><td><b>Skor 3</b></td><td>= Cukup</td></tr>
+<tr><td><b>Skor 2</b></td><td>= Kurang</td></tr>
+<tr><td><b>Skor 1</b></td><td>= Sangat Kurang</td></tr>
+</table>
+
+<h2>A. Aspek Tampilan Visual (User Interface)</h2>
+<table>
+<tr><th style="width:5%">No</th><th style="width:55%">Indikator</th><th style="width:8%">1</th><th style="width:8%">2</th><th style="width:8%">3</th><th style="width:8%">4</th><th style="width:8%">5</th></tr>
+<tr><td class="center">1</td><td>Desain antarmuka (layout) aplikasi menarik dan profesional</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">2</td><td>Pemilihan warna pada aplikasi konsisten dan nyaman dilihat</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">3</td><td>Tipografi (jenis dan ukuran huruf) mudah dibaca</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">4</td><td>Ikon dan elemen visual mendukung pemahaman fungsi</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">5</td><td>Tampilan dashboard informatif dan mudah dipahami</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">6</td><td>Visualisasi data (grafik/chart) ditampilkan dengan jelas</td><td></td><td></td><td></td><td></td><td></td></tr>
+</table>
+
+<h2>B. Aspek Navigasi dan Kemudahan Penggunaan (Usability)</h2>
+<table>
+<tr><th style="width:5%">No</th><th style="width:55%">Indikator</th><th style="width:8%">1</th><th style="width:8%">2</th><th style="width:8%">3</th><th style="width:8%">4</th><th style="width:8%">5</th></tr>
+<tr><td class="center">7</td><td>Navigasi antar halaman mudah dipahami dan digunakan</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">8</td><td>Menu sidebar terstruktur dengan baik sesuai fungsi role pengguna</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">9</td><td>Proses input data (pencatatan perilaku, presensi) cepat dan efisien</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">10</td><td>Fitur pencarian siswa (combo search box) mempermudah pengguna</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">11</td><td>Pesan konfirmasi dan notifikasi ditampilkan dengan jelas</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">12</td><td>Alur penggunaan aplikasi intuitif tanpa memerlukan pelatihan khusus</td><td></td><td></td><td></td><td></td><td></td></tr>
+</table>
+
+<h2>C. Aspek Responsivitas dan Kompatibilitas</h2>
+<table>
+<tr><th style="width:5%">No</th><th style="width:55%">Indikator</th><th style="width:8%">1</th><th style="width:8%">2</th><th style="width:8%">3</th><th style="width:8%">4</th><th style="width:8%">5</th></tr>
+<tr><td class="center">13</td><td>Aplikasi dapat diakses dengan baik melalui perangkat mobile (smartphone)</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">14</td><td>Aplikasi dapat diakses dengan baik melalui desktop/laptop</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">15</td><td>Fitur scan QR Code berfungsi dengan baik di perangkat mobile</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">16</td><td>Laporan/rapor karakter dapat dicetak dengan tampilan yang rapi</td><td></td><td></td><td></td><td></td><td></td></tr>
+</table>
+
+<h2>D. Aspek Keamanan dan Reliabilitas</h2>
+<table>
+<tr><th style="width:5%">No</th><th style="width:55%">Indikator</th><th style="width:8%">1</th><th style="width:8%">2</th><th style="width:8%">3</th><th style="width:8%">4</th><th style="width:8%">5</th></tr>
+<tr><td class="center">17</td><td>Sistem login dan autentikasi berfungsi dengan baik</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">18</td><td>Pembatasan hak akses per role berjalan dengan benar</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">19</td><td>Data tersimpan dengan baik dan tidak hilang saat digunakan</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">20</td><td>Fitur lupa password berfungsi dengan aman</td><td></td><td></td><td></td><td></td><td></td></tr>
+</table>
+
+<h2>E. Komentar dan Saran</h2>
+<table>
+<tr><td style="height:120pt; vertical-align:top;">
+<br><br><br><br><br><br>
+</td></tr>
+</table>
+
+<h2>F. Kesimpulan</h2>
+<p>Berdasarkan penilaian di atas, aplikasi SIKAPDIK ini dinyatakan:</p>
+<table class="no-border">
+<tr><td style="width:5%">☐</td><td>Layak digunakan tanpa revisi</td></tr>
+<tr><td>☐</td><td>Layak digunakan dengan revisi kecil</td></tr>
+<tr><td>☐</td><td>Tidak layak digunakan (perlu revisi besar)</td></tr>
+</table>
+
+<br><br>
+<table class="no-border" style="width:50%; margin-left:auto;">
+<tr><td class="center">.................., .......... 2025</td></tr>
+<tr><td class="center">Validator,</td></tr>
+<tr><td class="center"><br><br><br><br></td></tr>
+<tr><td class="center">(.............................................)</td></tr>
+<tr><td class="center">NIP. ........................................</td></tr>
+</table>
+
+<!-- ============================================ -->
+<!-- PAGE 2: INSTRUMEN VALIDASI AHLI MATERI -->
+<!-- ============================================ -->
+
+<div class="page-break"></div>
+
+<h1>INSTRUMEN VALIDASI AHLI MATERI</h1>
+<h1 style="font-size:12pt; font-weight:normal;">Pengembangan Aplikasi Pemantauan Perilaku Siswa Berbasis Website<br>dalam Mendukung Manajemen Pembinaan Karakter di Sekolah Dasar</h1>
+
+<br>
+<table class="no-border" style="width:70%">
+<tr><td style="width:30%">Nama Validator</td><td>: ........................................................</td></tr>
+<tr><td>Instansi</td><td>: ........................................................</td></tr>
+<tr><td>Jabatan</td><td>: ........................................................</td></tr>
+<tr><td>Tanggal</td><td>: ........................................................</td></tr>
+</table>
+
+<h3>Petunjuk Pengisian:</h3>
+<p>Berikan penilaian terhadap kesesuaian materi/konten aplikasi SIKAPDIK dengan kebutuhan manajemen pembinaan karakter di sekolah dasar. Berikan tanda centang (✓) pada kolom skor yang sesuai:</p>
+<table class="no-border" style="width:60%">
+<tr><td style="width:15%"><b>Skor 5</b></td><td>= Sangat Sesuai</td></tr>
+<tr><td><b>Skor 4</b></td><td>= Sesuai</td></tr>
+<tr><td><b>Skor 3</b></td><td>= Cukup Sesuai</td></tr>
+<tr><td><b>Skor 2</b></td><td>= Kurang Sesuai</td></tr>
+<tr><td><b>Skor 1</b></td><td>= Tidak Sesuai</td></tr>
+</table>
+
+<h2>A. Aspek Kesesuaian dengan Kebutuhan Manajemen Pembinaan Karakter</h2>
+<table>
+<tr><th style="width:5%">No</th><th style="width:55%">Indikator</th><th style="width:8%">1</th><th style="width:8%">2</th><th style="width:8%">3</th><th style="width:8%">4</th><th style="width:8%">5</th></tr>
+<tr><td class="center">1</td><td>Fitur pencatatan perilaku positif (keteladanan) sesuai dengan kebutuhan sekolah dalam mendokumentasikan karakter baik siswa</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">2</td><td>Fitur pencatatan perilaku negatif (pelanggaran) sesuai dengan kebutuhan pembinaan disiplin siswa</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">3</td><td>Kategori perilaku yang disediakan relevan dengan konteks pembinaan karakter siswa SD</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">4</td><td>Sistem poin (positif/negatif) memadai untuk mengukur perkembangan karakter siswa</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">5</td><td>Fitur tindak lanjut pembinaan sesuai dengan prosedur pembinaan karakter di sekolah</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">6</td><td>Jenis tindak lanjut (teguran, nasihat, mediasi, komunikasi orang tua, dll.) mencakup kebutuhan pembinaan karakter</td><td></td><td></td><td></td><td></td><td></td></tr>
+</table>
+
+<h2>B. Aspek Kelengkapan Fitur Pemantauan</h2>
+<table>
+<tr><th style="width:5%">No</th><th style="width:55%">Indikator</th><th style="width:8%">1</th><th style="width:8%">2</th><th style="width:8%">3</th><th style="width:8%">4</th><th style="width:8%">5</th></tr>
+<tr><td class="center">7</td><td>Fitur presensi QR Code mendukung pemantauan kedisiplinan kehadiran siswa</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">8</td><td>Otomatisasi poin berdasarkan kehadiran (tepat waktu = +poin, terlambat = -poin) sesuai dengan pembinaan karakter disiplin</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">9</td><td>Profil siswa terpadu (presensi, perilaku, prestasi, potensi, tindak lanjut) memberikan gambaran holistik perkembangan karakter</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">10</td><td>Fitur pencatatan prestasi siswa mendukung penguatan karakter positif</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">11</td><td>Fitur pemetaan potensi siswa membantu guru dalam mengarahkan pembinaan karakter</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">12</td><td>Rapor Karakter per semester memberikan evaluasi komprehensif terhadap perkembangan karakter</td><td></td><td></td><td></td><td></td><td></td></tr>
+</table>
+
+<h2>C. Aspek Peran dan Kolaborasi Stakeholder</h2>
+<table>
+<tr><th style="width:5%">No</th><th style="width:55%">Indikator</th><th style="width:8%">1</th><th style="width:8%">2</th><th style="width:8%">3</th><th style="width:8%">4</th><th style="width:8%">5</th></tr>
+<tr><td class="center">13</td><td>Peran wali kelas dalam sistem sesuai dengan tugas pembinaan karakter di kelas</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">14</td><td>Peran guru mapel dalam pencatatan perilaku mendukung observasi karakter lintas mata pelajaran</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">15</td><td>Peran kepala sekolah dalam pemantauan mendukung fungsi supervisi pembinaan karakter</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">16</td><td>Portal orang tua mendukung kolaborasi sekolah-rumah dalam pembinaan karakter</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">17</td><td>Sistem notifikasi membantu komunikasi antar pihak terkait perkembangan karakter siswa</td><td></td><td></td><td></td><td></td><td></td></tr>
+</table>
+
+<h2>D. Aspek Pelaporan dan Evaluasi</h2>
+<table>
+<tr><th style="width:5%">No</th><th style="width:55%">Indikator</th><th style="width:8%">1</th><th style="width:8%">2</th><th style="width:8%">3</th><th style="width:8%">4</th><th style="width:8%">5</th></tr>
+<tr><td class="center">18</td><td>Laporan presensi mendukung evaluasi kedisiplinan siswa</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">19</td><td>Laporan perilaku (keteladanan dan pelanggaran) mendukung analisis perkembangan karakter</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">20</td><td>Rapor Karakter dengan predikat (A/B/C/D) memadai sebagai alat evaluasi pembinaan karakter per semester</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">21</td><td>Ringkasan karakter per kelas membantu kepala sekolah dalam pengambilan keputusan pembinaan</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">22</td><td>Grafik/visualisasi data membantu dalam memahami tren perkembangan karakter</td><td></td><td></td><td></td><td></td><td></td></tr>
+</table>
+
+<h2>E. Aspek Kesesuaian dengan Kurikulum dan Regulasi</h2>
+<table>
+<tr><th style="width:5%">No</th><th style="width:55%">Indikator</th><th style="width:8%">1</th><th style="width:8%">2</th><th style="width:8%">3</th><th style="width:8%">4</th><th style="width:8%">5</th></tr>
+<tr><td class="center">23</td><td>Pendekatan pencatatan karakter seimbang (positif dan negatif) sesuai dengan prinsip penguatan pendidikan karakter (PPK)</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">24</td><td>Fitur-fitur aplikasi mendukung implementasi Profil Pelajar Pancasila di tingkat sekolah dasar</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">25</td><td>Sistem pembinaan karakter dalam aplikasi sesuai dengan Permendikbud tentang penguatan pendidikan karakter</td><td></td><td></td><td></td><td></td><td></td></tr>
+</table>
+
+<h2>F. Komentar dan Saran</h2>
+<table>
+<tr><td style="height:120pt; vertical-align:top;">
+<br><br><br><br><br><br>
+</td></tr>
+</table>
+
+<h2>G. Kesimpulan</h2>
+<p>Berdasarkan penilaian di atas, materi/konten aplikasi SIKAPDIK ini dinyatakan:</p>
+<table class="no-border">
+<tr><td style="width:5%">☐</td><td>Layak digunakan tanpa revisi</td></tr>
+<tr><td>☐</td><td>Layak digunakan dengan revisi kecil</td></tr>
+<tr><td>☐</td><td>Tidak layak digunakan (perlu revisi besar)</td></tr>
+</table>
+
+<br><br>
+<table class="no-border" style="width:50%; margin-left:auto;">
+<tr><td class="center">.................., .......... 2025</td></tr>
+<tr><td class="center">Validator,</td></tr>
+<tr><td class="center"><br><br><br><br></td></tr>
+<tr><td class="center">(.............................................)</td></tr>
+<tr><td class="center">NIP. ........................................</td></tr>
+</table>
+
+</body>
+</html>
