@@ -1,0 +1,113 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml><![endif]-->
+<style>
+body { font-family: 'Times New Roman', serif; font-size: 12pt; margin: 2.54cm; line-height: 1.5; }
+h1 { font-size: 14pt; font-weight: bold; text-align: center; margin-bottom: 5pt; }
+h2 { font-size: 13pt; font-weight: bold; margin-top: 18pt; margin-bottom: 6pt; }
+h3 { font-size: 12pt; font-weight: bold; margin-top: 12pt; margin-bottom: 6pt; }
+table { border-collapse: collapse; width: 100%; margin: 10pt 0; }
+table, th, td { border: 1px solid black; }
+th { background-color: #f0f0f0; padding: 6pt; font-weight: bold; text-align: center; font-size: 11pt; }
+td { padding: 6pt; font-size: 11pt; vertical-align: top; }
+.center { text-align: center; }
+.no-border { border: none; }
+.no-border td { border: none; padding: 3pt; }
+p { margin: 6pt 0; text-align: justify; }
+.page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+<h1>INSTRUMEN TAHAP DESIGN & DEVELOPMENT</h1>
+<h1 style="font-size:12pt; font-weight:normal;">Pengembangan Aplikasi Pemantauan Perilaku Siswa Berbasis Website<br>dalam Mendukung Manajemen Pembinaan Karakter di Sekolah Dasar</h1>
+
+<br>
+<table class="no-border" style="width:70%">
+<tr><td style="width:30%">Nama Penilai</td><td>: ........................................................</td></tr>
+<tr><td>Jabatan/Keahlian</td><td>: ........................................................</td></tr>
+<tr><td>Instansi</td><td>: ........................................................</td></tr>
+<tr><td>Tanggal</td><td>: ........................................................</td></tr>
+</table>
+
+<h3>Petunjuk Pengisian:</h3>
+<p>Instrumen ini digunakan untuk menilai kualitas tahap Design (Perancangan) dan Development (Pengembangan) dalam pengembangan aplikasi SIKAPDIK menggunakan model ADDIE. Berikan penilaian dengan memberikan tanda centang (✓) pada kolom skor yang sesuai dengan kriteria berikut:</p>
+<table class="no-border" style="width:60%">
+<tr><td style="width:15%"><b>Skor 5</b></td><td>= Sangat Baik</td></tr>
+<tr><td><b>Skor 4</b></td><td>= Baik</td></tr>
+<tr><td><b>Skor 3</b></td><td>= Cukup</td></tr>
+<tr><td><b>Skor 2</b></td><td>= Kurang</td></tr>
+<tr><td><b>Skor 1</b></td><td>= Sangat Kurang</td></tr>
+</table>
+
+<h2>A. Tahap Design (Perancangan)</h2>
+<table>
+<tr><th style="width:5%">No</th><th style="width:55%">Indikator</th><th style="width:8%">1</th><th style="width:8%">2</th><th style="width:8%">3</th><th style="width:8%">4</th><th style="width:8%">5</th></tr>
+<tr><td class="center">1</td><td>Perancangan arsitektur sistem (client-server berbasis web) sesuai kebutuhan pengguna</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">2</td><td>Perancangan database relasional mencakup seluruh entitas yang dibutuhkan (siswa, guru, kelas, perilaku, presensi, prestasi)</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">3</td><td>Perancangan hak akses 5 role (Admin, Kepala Sekolah, Wali Kelas, Guru Mapel, Orang Tua) sesuai fungsi masing-masing</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">4</td><td>Perancangan alur pencatatan perilaku (input → validasi → tindak lanjut → evaluasi) terstruktur</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">5</td><td>Perancangan alur presensi QR Code (generate → scan → otomatis catat poin) efisien</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">6</td><td>Perancangan antarmuka (wireframe/mockup) mengacu pada prinsip UI/UX yang baik</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">7</td><td>Perancangan rapor karakter mencakup aspek penilaian yang komprehensif</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">8</td><td>Perancangan sistem notifikasi mendukung komunikasi antar stakeholder</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">9</td><td>Perancangan fitur import/export data mendukung efisiensi pengelolaan</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">10</td><td>Perancangan sistem keamanan (CSRF, password hash, role-based access) memadai</td><td></td><td></td><td></td><td></td><td></td></tr>
+</table>
+
+<h2>B. Tahap Development (Pengembangan)</h2>
+<table>
+<tr><th style="width:5%">No</th><th style="width:55%">Indikator</th><th style="width:8%">1</th><th style="width:8%">2</th><th style="width:8%">3</th><th style="width:8%">4</th><th style="width:8%">5</th></tr>
+<tr><td class="center">11</td><td>Pengembangan menggunakan teknologi yang sesuai (PHP 8.2, MySQL, Tailwind CSS)</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">12</td><td>Implementasi fitur pencatatan perilaku (keteladanan & pelanggaran) berfungsi sesuai rancangan</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">13</td><td>Implementasi presensi QR Code berfungsi dengan baik di perangkat mobile</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">14</td><td>Implementasi otomatisasi poin presensi (tepat waktu +3, terlambat -3) berjalan akurat</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">15</td><td>Implementasi tindak lanjut pembinaan terintegrasi dengan catatan perilaku</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">16</td><td>Implementasi dashboard per role menampilkan data yang relevan dengan grafik visualisasi</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">17</td><td>Implementasi rapor karakter (individual & ringkasan kelas) menghasilkan output yang informatif</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">18</td><td>Implementasi import data (siswa, orang tua) dari Excel berfungsi tanpa error</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">19</td><td>Implementasi sistem kenaikan kelas & kelulusan menangani transisi siswa dengan benar</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">20</td><td>Implementasi manajemen data semester memungkinkan pembersihan data periodik</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">21</td><td>Implementasi laporan multi-filter (harian/mingguan/bulanan/semester) sesuai kebutuhan evaluasi</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">22</td><td>Pengujian fungsional: seluruh fitur utama berjalan tanpa error kritis</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">23</td><td>Pengujian kompatibilitas: aplikasi berjalan di berbagai browser (Chrome, Firefox, Safari)</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">24</td><td>Pengujian keamanan: tidak ditemukan celah keamanan yang signifikan</td><td></td><td></td><td></td><td></td><td></td></tr>
+</table>
+
+<h2>C. Komentar dan Saran</h2>
+
+<h3>Komentar untuk Tahap Design:</h3>
+<table>
+<tr><td style="height:80pt; vertical-align:top;">
+<br><br><br><br>
+</td></tr>
+</table>
+
+<h3>Komentar untuk Tahap Development:</h3>
+<table>
+<tr><td style="height:80pt; vertical-align:top;">
+<br><br><br><br>
+</td></tr>
+</table>
+
+<h2>D. Kesimpulan</h2>
+<p>Berdasarkan penilaian di atas, tahap Design dan Development aplikasi SIKAPDIK ini dinyatakan:</p>
+<table class="no-border">
+<tr><td style="width:5%">☐</td><td>Layak dilanjutkan ke tahap Implementation tanpa revisi</td></tr>
+<tr><td>☐</td><td>Layak dilanjutkan ke tahap Implementation dengan revisi kecil</td></tr>
+<tr><td>☐</td><td>Tidak layak dilanjutkan (perlu revisi besar pada tahap Design/Development)</td></tr>
+</table>
+
+<br><br>
+<table class="no-border" style="width:50%; margin-left:auto;">
+<tr><td class="center">.................., .......... 2025</td></tr>
+<tr><td class="center">Penilai,</td></tr>
+<tr><td class="center"><br><br><br><br></td></tr>
+<tr><td class="center">(.............................................)</td></tr>
+<tr><td class="center">NIP. ........................................</td></tr>
+</table>
+
+</body>
+</html>
