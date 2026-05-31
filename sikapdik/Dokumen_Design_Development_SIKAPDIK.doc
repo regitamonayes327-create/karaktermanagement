@@ -1,0 +1,295 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml><![endif]-->
+<style>
+body { font-family: 'Times New Roman', serif; font-size: 12pt; margin: 2.54cm; line-height: 1.5; }
+h1 { font-size: 14pt; font-weight: bold; text-align: center; margin-bottom: 5pt; }
+h2 { font-size: 13pt; font-weight: bold; margin-top: 18pt; margin-bottom: 6pt; }
+h3 { font-size: 12pt; font-weight: bold; margin-top: 12pt; margin-bottom: 6pt; }
+table { border-collapse: collapse; width: 100%; margin: 10pt 0; }
+table, th, td { border: 1px solid black; }
+th { background-color: #f0f0f0; padding: 6pt; font-weight: bold; text-align: center; font-size: 11pt; }
+td { padding: 6pt; font-size: 11pt; vertical-align: top; }
+.center { text-align: center; }
+.no-border { border: none; }
+.no-border td { border: none; padding: 3pt; }
+p { margin: 6pt 0; text-align: justify; }
+.page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+<h1>DOKUMEN DESIGN &amp; DEVELOPMENT</h1>
+<h1 style="font-size:12pt; font-weight:normal;">Pengembangan Aplikasi Pemantauan Perilaku Siswa Berbasis Website<br>dalam Mendukung Manajemen Pembinaan Karakter di Sekolah Dasar</h1>
+<h1 style="font-size:12pt; font-weight:normal;">(SIKAPDIK - Sistem Informasi Pemantauan Perilaku Siswa)</h1>
+
+<br>
+
+
+<h2>1. ARSITEKTUR SISTEM</h2>
+<table>
+<tr><th style="width:5%">No</th><th style="width:20%">Layer</th><th style="width:25%">Teknologi</th><th style="width:50%">Deskripsi</th></tr>
+<tr><td class="center">1</td><td>Client (Frontend)</td><td>HTML5, CSS3, Bootstrap 5, JavaScript</td><td>Antarmuka pengguna responsif yang dapat diakses melalui browser di desktop maupun mobile</td></tr>
+<tr><td class="center">2</td><td>Server (Backend)</td><td>PHP 7.4+ (Native)</td><td>Logic aplikasi menggunakan arsitektur modular tanpa framework, mencakup autentikasi, manajemen data, dan business logic</td></tr>
+<tr><td class="center">3</td><td>Database</td><td>MySQL 5.7+</td><td>Penyimpanan data relasional untuk seluruh entitas sistem (siswa, guru, perilaku, presensi, dll)</td></tr>
+<tr><td class="center">4</td><td>Web Server</td><td>Apache dengan mod_rewrite</td><td>Menangani routing URL dan serving file statis, konfigurasi melalui .htaccess</td></tr>
+<tr><td class="center">5</td><td>Library Pendukung</td><td>Chart.js, QR Code Generator, SimpleXLSX</td><td>Visualisasi data statistik, generate/scan QR code presensi, import/export data Excel</td></tr>
+</table>
+
+
+<h2>2. USE CASE</h2>
+<table>
+<tr><th style="width:5%">No</th><th style="width:15%">Aktor</th><th style="width:25%">Use Case</th><th style="width:55%">Deskripsi</th></tr>
+<tr><td class="center">1</td><td>Admin</td><td>Kelola Data Pengguna</td><td>Menambah, mengedit, dan menghapus akun guru, wali kelas, dan orang tua</td></tr>
+<tr><td class="center">2</td><td>Admin</td><td>Kelola Data Siswa</td><td>CRUD data siswa termasuk import massal dari file Excel</td></tr>
+<tr><td class="center">3</td><td>Admin</td><td>Kelola Kelas</td><td>Membuat kelas, assign wali kelas, dan mengatur kenaikan kelas</td></tr>
+<tr><td class="center">4</td><td>Admin</td><td>Kelola Kategori Perilaku</td><td>Mengatur kategori dan indikator perilaku positif/negatif beserta poin</td></tr>
+<tr><td class="center">5</td><td>Admin</td><td>Lihat Laporan &amp; Statistik</td><td>Melihat rekapitulasi data perilaku seluruh siswa dan kelas</td></tr>
+<tr><td class="center">6</td><td>Admin</td><td>Kelola Pengaturan Sistem</td><td>Mengatur tahun ajaran, reset data tahunan, dan konfigurasi aplikasi</td></tr>
+<tr><td class="center">7</td><td>Wali Kelas</td><td>Input Perilaku Positif</td><td>Mencatat perilaku positif siswa di kelasnya dengan kategori dan deskripsi</td></tr>
+<tr><td class="center">8</td><td>Wali Kelas</td><td>Input Perilaku Negatif</td><td>Mencatat pelanggaran siswa beserta tindak lanjut pembinaan</td></tr>
+<tr><td class="center">9</td><td>Wali Kelas</td><td>Input Presensi</td><td>Mencatat kehadiran harian siswa (hadir, izin, sakit, alpha)</td></tr>
+<tr><td class="center">10</td><td>Wali Kelas</td><td>Lihat Dashboard Kelas</td><td>Melihat ringkasan statistik perilaku dan presensi siswa di kelasnya</td></tr>
+<tr><td class="center">11</td><td>Wali Kelas</td><td>Cetak Rapor Karakter</td><td>Mencetak laporan karakter per siswa untuk dibagikan ke orang tua</td></tr>
+<tr><td class="center">12</td><td>Guru Mapel</td><td>Input Perilaku Positif</td><td>Mencatat perilaku positif siswa saat pembelajaran mata pelajaran</td></tr>
+<tr><td class="center">13</td><td>Guru Mapel</td><td>Input Perilaku Negatif</td><td>Mencatat pelanggaran siswa selama jam pelajaran</td></tr>
+<tr><td class="center">14</td><td>Guru Mapel</td><td>Lihat Riwayat Pencatatan</td><td>Melihat histori pencatatan perilaku yang telah dilakukan</td></tr>
+<tr><td class="center">15</td><td>Guru Mapel</td><td>Input Prestasi Siswa</td><td>Mencatat pencapaian/prestasi siswa dalam bidang akademik maupun non-akademik</td></tr>
+<tr><td class="center">16</td><td>Kepala Sekolah</td><td>Lihat Dashboard Sekolah</td><td>Monitoring keseluruhan data perilaku, presensi, dan tren di seluruh kelas</td></tr>
+<tr><td class="center">17</td><td>Kepala Sekolah</td><td>Lihat Laporan Per Kelas</td><td>Membandingkan statistik perilaku antar kelas</td></tr>
+<tr><td class="center">18</td><td>Kepala Sekolah</td><td>Lihat Rekap Prestasi</td><td>Melihat daftar prestasi siswa secara keseluruhan</td></tr>
+<tr><td class="center">19</td><td>Orang Tua</td><td>Lihat Perilaku Anak</td><td>Memantau catatan perilaku positif dan negatif anak</td></tr>
+<tr><td class="center">20</td><td>Orang Tua</td><td>Lihat Presensi Anak</td><td>Memantau kehadiran harian anak di sekolah</td></tr>
+<tr><td class="center">21</td><td>Orang Tua</td><td>Lihat Notifikasi</td><td>Menerima pemberitahuan terkait perilaku atau pelanggaran anak</td></tr>
+<tr><td class="center">22</td><td>Orang Tua</td><td>Lihat Prestasi Anak</td><td>Melihat pencapaian/prestasi anak di sekolah</td></tr>
+</table>
+
+
+<div class="page-break"></div>
+<h2>3. ENTITY RELATIONSHIP DIAGRAM (ERD)</h2>
+<p>Berikut adalah entitas-entitas utama dalam database SIKAPDIK beserta atribut dan relasinya:</p>
+
+<h3>3.1 Tabel users</h3>
+<table>
+<tr><th style="width:25%">Kolom</th><th style="width:20%">Tipe Data</th><th style="width:55%">Keterangan</th></tr>
+<tr><td>id</td><td>INT (PK, AI)</td><td>Primary key</td></tr>
+<tr><td>username</td><td>VARCHAR(50)</td><td>Username untuk login</td></tr>
+<tr><td>password</td><td>VARCHAR(255)</td><td>Password terenkripsi (bcrypt)</td></tr>
+<tr><td>full_name</td><td>VARCHAR(100)</td><td>Nama lengkap pengguna</td></tr>
+<tr><td>role</td><td>ENUM</td><td>admin, wali_kelas, guru_mapel, kepala_sekolah, orang_tua</td></tr>
+<tr><td>status</td><td>ENUM</td><td>active, inactive</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>Waktu pembuatan akun</td></tr>
+</table>
+
+<h3>3.2 Tabel students</h3>
+<table>
+<tr><th style="width:25%">Kolom</th><th style="width:20%">Tipe Data</th><th style="width:55%">Keterangan</th></tr>
+<tr><td>id</td><td>INT (PK, AI)</td><td>Primary key</td></tr>
+<tr><td>nis</td><td>VARCHAR(20)</td><td>Nomor Induk Siswa</td></tr>
+<tr><td>full_name</td><td>VARCHAR(100)</td><td>Nama lengkap siswa</td></tr>
+<tr><td>class_id</td><td>INT (FK)</td><td>Relasi ke tabel classes</td></tr>
+<tr><td>parent_id</td><td>INT (FK)</td><td>Relasi ke tabel users (orang tua)</td></tr>
+<tr><td>gender</td><td>ENUM</td><td>L, P</td></tr>
+<tr><td>status</td><td>ENUM</td><td>active, inactive</td></tr>
+</table>
+
+<h3>3.3 Tabel classes</h3>
+<table>
+<tr><th style="width:25%">Kolom</th><th style="width:20%">Tipe Data</th><th style="width:55%">Keterangan</th></tr>
+<tr><td>id</td><td>INT (PK, AI)</td><td>Primary key</td></tr>
+<tr><td>class_name</td><td>VARCHAR(50)</td><td>Nama kelas (misal: 1A, 2B)</td></tr>
+<tr><td>teacher_id</td><td>INT (FK)</td><td>Relasi ke tabel users (wali kelas)</td></tr>
+<tr><td>academic_year</td><td>VARCHAR(10)</td><td>Tahun ajaran</td></tr>
+</table>
+
+<h3>3.4 Tabel behavior_records</h3>
+<table>
+<tr><th style="width:25%">Kolom</th><th style="width:20%">Tipe Data</th><th style="width:55%">Keterangan</th></tr>
+<tr><td>id</td><td>INT (PK, AI)</td><td>Primary key</td></tr>
+<tr><td>student_id</td><td>INT (FK)</td><td>Relasi ke tabel students</td></tr>
+<tr><td>recorded_by</td><td>INT (FK)</td><td>Relasi ke tabel users (guru pencatat)</td></tr>
+<tr><td>category_id</td><td>INT (FK)</td><td>Relasi ke tabel behavior_categories</td></tr>
+<tr><td>type</td><td>ENUM</td><td>positive, negative</td></tr>
+<tr><td>description</td><td>TEXT</td><td>Deskripsi perilaku</td></tr>
+<tr><td>points</td><td>INT</td><td>Poin perilaku</td></tr>
+<tr><td>date</td><td>DATE</td><td>Tanggal kejadian</td></tr>
+<tr><td>followup</td><td>TEXT</td><td>Tindak lanjut (untuk perilaku negatif)</td></tr>
+</table>
+
+<h3>3.5 Tabel behavior_categories</h3>
+<table>
+<tr><th style="width:25%">Kolom</th><th style="width:20%">Tipe Data</th><th style="width:55%">Keterangan</th></tr>
+<tr><td>id</td><td>INT (PK, AI)</td><td>Primary key</td></tr>
+<tr><td>name</td><td>VARCHAR(100)</td><td>Nama kategori</td></tr>
+<tr><td>type</td><td>ENUM</td><td>positive, negative</td></tr>
+<tr><td>points</td><td>INT</td><td>Poin default</td></tr>
+<tr><td>description</td><td>TEXT</td><td>Deskripsi kategori</td></tr>
+</table>
+
+<h3>3.6 Tabel attendance</h3>
+<table>
+<tr><th style="width:25%">Kolom</th><th style="width:20%">Tipe Data</th><th style="width:55%">Keterangan</th></tr>
+<tr><td>id</td><td>INT (PK, AI)</td><td>Primary key</td></tr>
+<tr><td>student_id</td><td>INT (FK)</td><td>Relasi ke tabel students</td></tr>
+<tr><td>date</td><td>DATE</td><td>Tanggal presensi</td></tr>
+<tr><td>status</td><td>ENUM</td><td>hadir, izin, sakit, alpha</td></tr>
+<tr><td>recorded_by</td><td>INT (FK)</td><td>Guru yang mencatat</td></tr>
+</table>
+
+<h3>3.7 Tabel achievements</h3>
+<table>
+<tr><th style="width:25%">Kolom</th><th style="width:20%">Tipe Data</th><th style="width:55%">Keterangan</th></tr>
+<tr><td>id</td><td>INT (PK, AI)</td><td>Primary key</td></tr>
+<tr><td>student_id</td><td>INT (FK)</td><td>Relasi ke tabel students</td></tr>
+<tr><td>title</td><td>VARCHAR(200)</td><td>Judul prestasi</td></tr>
+<tr><td>category_id</td><td>INT (FK)</td><td>Kategori prestasi</td></tr>
+<tr><td>level</td><td>ENUM</td><td>sekolah, kecamatan, kabupaten, provinsi, nasional</td></tr>
+<tr><td>date</td><td>DATE</td><td>Tanggal pencapaian</td></tr>
+<tr><td>recorded_by</td><td>INT (FK)</td><td>Guru yang mencatat</td></tr>
+</table>
+
+<h3>3.8 Tabel notifications</h3>
+<table>
+<tr><th style="width:25%">Kolom</th><th style="width:20%">Tipe Data</th><th style="width:55%">Keterangan</th></tr>
+<tr><td>id</td><td>INT (PK, AI)</td><td>Primary key</td></tr>
+<tr><td>user_id</td><td>INT (FK)</td><td>Penerima notifikasi</td></tr>
+<tr><td>title</td><td>VARCHAR(200)</td><td>Judul notifikasi</td></tr>
+<tr><td>message</td><td>TEXT</td><td>Isi pesan</td></tr>
+<tr><td>is_read</td><td>TINYINT</td><td>Status baca (0/1)</td></tr>
+<tr><td>created_at</td><td>TIMESTAMP</td><td>Waktu notifikasi dibuat</td></tr>
+</table>
+
+<h3>Relasi Antar Entitas:</h3>
+<table>
+<tr><th style="width:5%">No</th><th style="width:30%">Relasi</th><th style="width:15%">Tipe</th><th style="width:50%">Keterangan</th></tr>
+<tr><td class="center">1</td><td>users → classes</td><td>One to Many</td><td>Satu wali kelas dapat mengelola satu kelas</td></tr>
+<tr><td class="center">2</td><td>classes → students</td><td>One to Many</td><td>Satu kelas memiliki banyak siswa</td></tr>
+<tr><td class="center">3</td><td>users → students</td><td>One to Many</td><td>Satu orang tua dapat memiliki beberapa anak</td></tr>
+<tr><td class="center">4</td><td>students → behavior_records</td><td>One to Many</td><td>Satu siswa memiliki banyak catatan perilaku</td></tr>
+<tr><td class="center">5</td><td>behavior_categories → behavior_records</td><td>One to Many</td><td>Satu kategori digunakan di banyak catatan</td></tr>
+<tr><td class="center">6</td><td>students → attendance</td><td>One to Many</td><td>Satu siswa memiliki banyak data presensi</td></tr>
+<tr><td class="center">7</td><td>students → achievements</td><td>One to Many</td><td>Satu siswa dapat memiliki banyak prestasi</td></tr>
+<tr><td class="center">8</td><td>users → notifications</td><td>One to Many</td><td>Satu pengguna menerima banyak notifikasi</td></tr>
+</table>
+
+
+<div class="page-break"></div>
+<h2>4. DATA FLOW DIAGRAM (DFD)</h2>
+
+<h3>4.1 DFD Level 0 (Context Diagram)</h3>
+<p>Sistem SIKAPDIK berinteraksi dengan 5 entitas eksternal:</p>
+<table>
+<tr><th style="width:5%">No</th><th style="width:20%">Entitas Eksternal</th><th style="width:35%">Data Masuk ke Sistem</th><th style="width:40%">Data Keluar dari Sistem</th></tr>
+<tr><td class="center">1</td><td>Admin</td><td>Data pengguna, data siswa, data kelas, konfigurasi sistem</td><td>Laporan statistik, data rekap seluruh sekolah</td></tr>
+<tr><td class="center">2</td><td>Wali Kelas</td><td>Data perilaku, data presensi, data prestasi</td><td>Dashboard kelas, laporan karakter, statistik siswa</td></tr>
+<tr><td class="center">3</td><td>Guru Mapel</td><td>Data perilaku positif/negatif, data prestasi</td><td>Riwayat pencatatan, daftar siswa per kelas</td></tr>
+<tr><td class="center">4</td><td>Kepala Sekolah</td><td>-</td><td>Dashboard sekolah, laporan perbandingan kelas, rekap prestasi</td></tr>
+<tr><td class="center">5</td><td>Orang Tua</td><td>-</td><td>Data perilaku anak, data presensi, notifikasi, data prestasi</td></tr>
+</table>
+
+<h3>4.2 DFD Level 1</h3>
+<p>Proses-proses utama dalam sistem:</p>
+<table>
+<tr><th style="width:5%">No</th><th style="width:25%">Proses</th><th style="width:25%">Input</th><th style="width:25%">Output</th><th style="width:20%">Data Store</th></tr>
+<tr><td class="center">1.0</td><td>Autentikasi Pengguna</td><td>Username, password</td><td>Session login, akses sesuai role</td><td>users</td></tr>
+<tr><td class="center">2.0</td><td>Manajemen Data Master</td><td>Data siswa, kelas, guru, orang tua</td><td>Konfirmasi CRUD</td><td>students, classes, users</td></tr>
+<tr><td class="center">3.0</td><td>Pencatatan Perilaku</td><td>Siswa, kategori, deskripsi, poin</td><td>Record tersimpan, notifikasi ke orang tua</td><td>behavior_records, notifications</td></tr>
+<tr><td class="center">4.0</td><td>Pencatatan Presensi</td><td>Siswa, tanggal, status kehadiran</td><td>Data presensi tersimpan</td><td>attendance</td></tr>
+<tr><td class="center">5.0</td><td>Pencatatan Prestasi</td><td>Siswa, judul, kategori, level</td><td>Data prestasi tersimpan</td><td>achievements</td></tr>
+<tr><td class="center">6.0</td><td>Pembuatan Laporan</td><td>Filter periode, kelas, siswa</td><td>Laporan statistik, rapor karakter, grafik</td><td>behavior_records, attendance</td></tr>
+<tr><td class="center">7.0</td><td>Manajemen Notifikasi</td><td>Trigger dari proses 3.0</td><td>Notifikasi ke orang tua</td><td>notifications</td></tr>
+</table>
+
+
+<div class="page-break"></div>
+<h2>5. SPESIFIKASI FITUR</h2>
+<table>
+<tr><th style="width:5%">No</th><th style="width:20%">Modul</th><th style="width:25%">Fitur</th><th style="width:50%">Deskripsi</th></tr>
+<tr><td class="center">1</td><td>Autentikasi</td><td>Login multi-role</td><td>Login dengan pembatasan akses berdasarkan 5 role pengguna</td></tr>
+<tr><td class="center">2</td><td>Autentikasi</td><td>Lupa password</td><td>Reset password melalui verifikasi data diri</td></tr>
+<tr><td class="center">3</td><td>Autentikasi</td><td>Ubah password</td><td>Pengguna dapat mengubah password sendiri</td></tr>
+<tr><td class="center">4</td><td>Admin</td><td>Dashboard admin</td><td>Ringkasan statistik: jumlah siswa, guru, kelas, catatan perilaku</td></tr>
+<tr><td class="center">5</td><td>Admin</td><td>CRUD pengguna</td><td>Manajemen akun semua role pengguna</td></tr>
+<tr><td class="center">6</td><td>Admin</td><td>CRUD siswa</td><td>Manajemen data siswa dengan import Excel</td></tr>
+<tr><td class="center">7</td><td>Admin</td><td>CRUD kelas</td><td>Manajemen kelas dan penugasan wali kelas</td></tr>
+<tr><td class="center">8</td><td>Admin</td><td>Kategori perilaku</td><td>Kelola indikator perilaku positif dan negatif</td></tr>
+<tr><td class="center">9</td><td>Admin</td><td>Import data massal</td><td>Import siswa dan orang tua dari file Excel (.xlsx)</td></tr>
+<tr><td class="center">10</td><td>Admin</td><td>Kenaikan kelas</td><td>Proses promosi siswa ke kelas berikutnya</td></tr>
+<tr><td class="center">11</td><td>Admin</td><td>Reset tahun ajaran</td><td>Reset data untuk tahun ajaran baru</td></tr>
+<tr><td class="center">12</td><td>Admin</td><td>Audit log</td><td>Rekam jejak aktivitas pengguna dalam sistem</td></tr>
+<tr><td class="center">13</td><td>Wali Kelas</td><td>Dashboard kelas</td><td>Statistik perilaku dan presensi siswa di kelas</td></tr>
+<tr><td class="center">14</td><td>Wali Kelas</td><td>Input perilaku positif</td><td>Pencatatan perilaku baik dengan combo search siswa</td></tr>
+<tr><td class="center">15</td><td>Wali Kelas</td><td>Input perilaku negatif</td><td>Pencatatan pelanggaran dengan tindak lanjut</td></tr>
+<tr><td class="center">16</td><td>Wali Kelas</td><td>Presensi harian</td><td>Input kehadiran siswa per hari dengan QR Code</td></tr>
+<tr><td class="center">17</td><td>Wali Kelas</td><td>Rapor karakter</td><td>Generate dan cetak laporan karakter per siswa</td></tr>
+<tr><td class="center">18</td><td>Wali Kelas</td><td>Laporan kelas</td><td>Statistik dan grafik perilaku per periode</td></tr>
+<tr><td class="center">19</td><td>Guru Mapel</td><td>Input perilaku</td><td>Catat perilaku positif/negatif siswa saat pelajaran</td></tr>
+<tr><td class="center">20</td><td>Guru Mapel</td><td>Input prestasi</td><td>Catat pencapaian siswa di bidang akademik/non-akademik</td></tr>
+<tr><td class="center">21</td><td>Guru Mapel</td><td>Riwayat pencatatan</td><td>Lihat histori catatan yang telah dibuat</td></tr>
+<tr><td class="center">22</td><td>Kepala Sekolah</td><td>Dashboard sekolah</td><td>Overview statistik seluruh sekolah dengan grafik tren</td></tr>
+<tr><td class="center">23</td><td>Kepala Sekolah</td><td>Perbandingan kelas</td><td>Komparasi statistik antar kelas</td></tr>
+<tr><td class="center">24</td><td>Kepala Sekolah</td><td>Rekap prestasi</td><td>Daftar seluruh prestasi siswa</td></tr>
+<tr><td class="center">25</td><td>Orang Tua</td><td>Dashboard anak</td><td>Ringkasan perilaku dan presensi anak</td></tr>
+<tr><td class="center">26</td><td>Orang Tua</td><td>Detail perilaku</td><td>Riwayat catatan perilaku positif dan negatif anak</td></tr>
+<tr><td class="center">27</td><td>Orang Tua</td><td>Presensi anak</td><td>Rekap kehadiran anak per bulan</td></tr>
+<tr><td class="center">28</td><td>Orang Tua</td><td>Notifikasi</td><td>Pemberitahuan otomatis saat anak mendapat catatan perilaku</td></tr>
+<tr><td class="center">29</td><td>Orang Tua</td><td>Prestasi anak</td><td>Daftar prestasi yang diraih anak</td></tr>
+</table>
+
+
+<div class="page-break"></div>
+<h2>6. HASIL PENGEMBANGAN</h2>
+<p>Aplikasi SIKAPDIK telah dikembangkan sesuai dengan spesifikasi desain pada fase Design. Berikut ringkasan hasil pengembangan:</p>
+<table>
+<tr><th style="width:5%">No</th><th style="width:25%">Komponen</th><th style="width:20%">Status</th><th style="width:50%">Keterangan</th></tr>
+<tr><td class="center">1</td><td>Database MySQL</td><td class="center">Selesai</td><td>8 tabel utama dengan relasi foreign key, indeks untuk optimasi query</td></tr>
+<tr><td class="center">2</td><td>Modul Autentikasi</td><td class="center">Selesai</td><td>Login multi-role, session management, password hashing bcrypt</td></tr>
+<tr><td class="center">3</td><td>Modul Admin</td><td class="center">Selesai</td><td>18 fitur termasuk CRUD, import Excel, kenaikan kelas, audit log</td></tr>
+<tr><td class="center">4</td><td>Modul Wali Kelas</td><td class="center">Selesai</td><td>Input perilaku, presensi QR, rapor karakter, dashboard statistik</td></tr>
+<tr><td class="center">5</td><td>Modul Guru Mapel</td><td class="center">Selesai</td><td>Input perilaku, pencatatan prestasi, riwayat pencatatan</td></tr>
+<tr><td class="center">6</td><td>Modul Kepala Sekolah</td><td class="center">Selesai</td><td>Dashboard monitoring, laporan perbandingan, rekap prestasi</td></tr>
+<tr><td class="center">7</td><td>Modul Orang Tua</td><td class="center">Selesai</td><td>Pemantauan perilaku, presensi, prestasi, dan notifikasi anak</td></tr>
+<tr><td class="center">8</td><td>Sistem Notifikasi</td><td class="center">Selesai</td><td>Notifikasi otomatis ke orang tua saat pencatatan perilaku negatif</td></tr>
+<tr><td class="center">9</td><td>Fitur QR Code</td><td class="center">Selesai</td><td>Generate dan scan QR untuk presensi cepat</td></tr>
+<tr><td class="center">10</td><td>Laporan &amp; Grafik</td><td class="center">Selesai</td><td>Visualisasi Chart.js, cetak rapor karakter format PDF-ready</td></tr>
+<tr><td class="center">11</td><td>Responsive Design</td><td class="center">Selesai</td><td>Tampilan adaptif untuk desktop, tablet, dan smartphone</td></tr>
+<tr><td class="center">12</td><td>Keamanan</td><td class="center">Selesai</td><td>CSRF protection, SQL injection prevention, XSS filtering, role-based access</td></tr>
+</table>
+
+
+<div class="page-break"></div>
+<h2>7. ALPHA TESTING</h2>
+<p>Pengujian alpha dilakukan oleh pengembang untuk memastikan seluruh fitur berfungsi sesuai spesifikasi sebelum divalidasi oleh ahli media.</p>
+<table>
+<tr><th style="width:4%">No</th><th style="width:20%">Modul</th><th style="width:30%">Skenario Pengujian</th><th style="width:30%">Hasil yang Diharapkan</th><th style="width:8%">Status</th><th style="width:8%">Hasil</th></tr>
+<tr><td class="center">1</td><td>Login</td><td>Login dengan akun admin valid</td><td>Redirect ke dashboard admin</td><td class="center">✓</td><td class="center">Valid</td></tr>
+<tr><td class="center">2</td><td>Login</td><td>Login dengan password salah</td><td>Tampil pesan error</td><td class="center">✓</td><td class="center">Valid</td></tr>
+<tr><td class="center">3</td><td>Login</td><td>Login sebagai wali kelas</td><td>Redirect ke dashboard wali kelas</td><td class="center">✓</td><td class="center">Valid</td></tr>
+<tr><td class="center">4</td><td>Admin - Siswa</td><td>Tambah data siswa baru</td><td>Data tersimpan di database</td><td class="center">✓</td><td class="center">Valid</td></tr>
+<tr><td class="center">5</td><td>Admin - Siswa</td><td>Import siswa dari Excel</td><td>Data massal berhasil diimport</td><td class="center">✓</td><td class="center">Valid</td></tr>
+<tr><td class="center">6</td><td>Admin - Kelas</td><td>Buat kelas dan assign wali kelas</td><td>Kelas terbuat dengan wali kelas terdaftar</td><td class="center">✓</td><td class="center">Valid</td></tr>
+<tr><td class="center">7</td><td>Admin - Kategori</td><td>Tambah kategori perilaku positif</td><td>Kategori tersimpan dengan poin</td><td class="center">✓</td><td class="center">Valid</td></tr>
+<tr><td class="center">8</td><td>Wali Kelas</td><td>Input perilaku positif siswa</td><td>Record tersimpan, poin bertambah</td><td class="center">✓</td><td class="center">Valid</td></tr>
+<tr><td class="center">9</td><td>Wali Kelas</td><td>Input perilaku negatif siswa</td><td>Record tersimpan, notifikasi terkirim ke orang tua</td><td class="center">✓</td><td class="center">Valid</td></tr>
+<tr><td class="center">10</td><td>Wali Kelas</td><td>Input presensi harian</td><td>Data kehadiran tersimpan untuk semua siswa</td><td class="center">✓</td><td class="center">Valid</td></tr>
+<tr><td class="center">11</td><td>Wali Kelas</td><td>Cetak rapor karakter</td><td>Rapor tampil dengan format siap cetak</td><td class="center">✓</td><td class="center">Valid</td></tr>
+<tr><td class="center">12</td><td>Guru Mapel</td><td>Input perilaku positif</td><td>Record tersimpan dengan identitas guru</td><td class="center">✓</td><td class="center">Valid</td></tr>
+<tr><td class="center">13</td><td>Guru Mapel</td><td>Input prestasi siswa</td><td>Data prestasi tersimpan dengan kategori dan level</td><td class="center">✓</td><td class="center">Valid</td></tr>
+<tr><td class="center">14</td><td>Kepala Sekolah</td><td>Akses dashboard sekolah</td><td>Statistik keseluruhan tampil dengan grafik</td><td class="center">✓</td><td class="center">Valid</td></tr>
+<tr><td class="center">15</td><td>Kepala Sekolah</td><td>Lihat perbandingan antar kelas</td><td>Data komparasi ditampilkan</td><td class="center">✓</td><td class="center">Valid</td></tr>
+<tr><td class="center">16</td><td>Orang Tua</td><td>Lihat perilaku anak</td><td>Data perilaku anak tampil lengkap</td><td class="center">✓</td><td class="center">Valid</td></tr>
+<tr><td class="center">17</td><td>Orang Tua</td><td>Lihat presensi anak</td><td>Rekap kehadiran per bulan ditampilkan</td><td class="center">✓</td><td class="center">Valid</td></tr>
+<tr><td class="center">18</td><td>Orang Tua</td><td>Cek notifikasi</td><td>Notifikasi perilaku negatif muncul</td><td class="center">✓</td><td class="center">Valid</td></tr>
+<tr><td class="center">19</td><td>Keamanan</td><td>Akses halaman tanpa login</td><td>Redirect ke halaman login</td><td class="center">✓</td><td class="center">Valid</td></tr>
+<tr><td class="center">20</td><td>Keamanan</td><td>Akses halaman di luar role</td><td>Tampil pesan akses ditolak</td><td class="center">✓</td><td class="center">Valid</td></tr>
+<tr><td class="center">21</td><td>Responsif</td><td>Akses via perangkat mobile</td><td>Tampilan menyesuaikan layar</td><td class="center">✓</td><td class="center">Valid</td></tr>
+<tr><td class="center">22</td><td>QR Code</td><td>Scan QR untuk presensi</td><td>Presensi tercatat otomatis</td><td class="center">✓</td><td class="center">Valid</td></tr>
+</table>
+
+<br>
+<p><b>Kesimpulan Alpha Testing:</b> Seluruh 22 skenario pengujian berhasil dilakukan dengan status valid. Aplikasi siap untuk tahap validasi ahli media dan uji coba pengguna.</p>
+
+</body>
+</html>

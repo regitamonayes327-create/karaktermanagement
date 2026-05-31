@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prototype UI - SIKAPDIK</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-white text-gray-800 p-8 max-w-5xl mx-auto">
+    <h1 class="text-2xl font-bold text-center mb-2">Lampiran: Prototype Desain Antarmuka SIKAPDIK</h1>
+    <p class="text-center text-sm text-gray-600 mb-8">Sistem Informasi Karakter dan Kedisiplinan Peserta Didik — SD Negeri 04 Jatigunung</p>
+
+    <!-- 1. Login Page -->
+    <section class="mb-10">
+        <h2 class="text-lg font-semibold mb-2">1. Halaman Login</h2>
+        <div class="border-2 border-gray-400 rounded-lg p-6 flex flex-col items-center gap-4 bg-gray-50 h-64 justify-center">
+            <div class="w-16 h-16 border-2 border-blue-400 rounded-full flex items-center justify-center text-xs text-blue-600">Logo</div>
+            <div class="text-sm font-bold">SIKAPDIK</div>
+            <div class="w-64 space-y-2">
+                <div class="border border-gray-300 rounded px-3 py-2 text-xs text-gray-400 bg-white">Username</div>
+                <div class="border border-gray-300 rounded px-3 py-2 text-xs text-gray-400 bg-white">Password</div>
+                <div class="bg-blue-500 text-white text-center rounded py-2 text-xs font-semibold">Login</div>
+            </div>
+        </div>
+        <p class="text-sm text-gray-600 mt-2">Halaman login digunakan oleh semua pengguna (Admin, Wali Kelas, Kepala Sekolah, Orang Tua) untuk mengakses sistem sesuai peran masing-masing.</p>
+    </section>
+
+    <!-- 2. Admin Dashboard -->
+    <section class="mb-10">
+        <h2 class="text-lg font-semibold mb-2">2. Admin — Dashboard</h2>
+        <div class="border-2 border-gray-400 rounded-lg flex bg-gray-50 h-64 overflow-hidden">
+            <div class="w-40 bg-gray-700 text-white text-xs p-3 space-y-2">
+                <div class="font-bold mb-3">Menu Admin</div>
+                <div class="bg-gray-600 rounded px-2 py-1">Dashboard</div>
+                <div class="px-2 py-1">Data Siswa</div>
+                <div class="px-2 py-1">Data Guru</div>
+                <div class="px-2 py-1">Kelas</div>
+                <div class="px-2 py-1">Laporan</div>
+                <div class="px-2 py-1">Pengaturan</div>
+            </div>
+            <div class="flex-1 p-4">
+                <div class="text-sm font-semibold mb-3">Dashboard Admin</div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="border rounded p-3 text-center text-xs"><div class="text-lg font-bold text-blue-600">120</div>Siswa</div>
+                    <div class="border rounded p-3 text-center text-xs"><div class="text-lg font-bold text-green-600">8</div>Guru</div>
+                    <div class="border rounded p-3 text-center text-xs"><div class="text-lg font-bold text-purple-600">6</div>Kelas</div>
+                </div>
+                <div class="border rounded mt-3 p-3 text-xs text-gray-500 h-16 flex items-center justify-center">Grafik Ringkasan Perilaku</div>
+            </div>
+        </div>
+        <p class="text-sm text-gray-600 mt-2">Dashboard admin menampilkan ringkasan data seluruh sekolah meliputi jumlah siswa, guru, kelas, serta grafik ringkasan perilaku.</p>
+    </section>
+
+    <!-- 3. Wali Kelas - Input Perilaku -->
+    <section class="mb-10">
+        <h2 class="text-lg font-semibold mb-2">3. Wali Kelas — Input Perilaku</h2>
+        <div class="border-2 border-gray-400 rounded-lg flex bg-gray-50 h-64 overflow-hidden">
+            <div class="w-40 bg-green-700 text-white text-xs p-3 space-y-2">
+                <div class="font-bold mb-3">Menu Wali Kelas</div>
+                <div class="px-2 py-1">Dashboard</div>
+                <div class="bg-green-600 rounded px-2 py-1">Input Perilaku</div>
+                <div class="px-2 py-1">Presensi QR</div>
+                <div class="px-2 py-1">Rapor Karakter</div>
+            </div>
+            <div class="flex-1 p-4 text-xs">
+                <div class="text-sm font-semibold mb-3">Input Catatan Perilaku</div>
+                <div class="space-y-2">
+                    <div class="flex gap-2"><span class="w-20 text-gray-500">Siswa:</span><div class="border rounded px-2 py-1 flex-1 bg-white">Pilih siswa...</div></div>
+                    <div class="flex gap-2"><span class="w-20 text-gray-500">Kategori:</span><div class="border rounded px-2 py-1 flex-1 bg-white">Positif / Negatif</div></div>
+                    <div class="flex gap-2"><span class="w-20 text-gray-500">Deskripsi:</span><div class="border rounded px-2 py-1 flex-1 bg-white h-12"></div></div>
+                    <div class="flex gap-2"><span class="w-20 text-gray-500">Tanggal:</span><div class="border rounded px-2 py-1 flex-1 bg-white">dd/mm/yyyy</div></div>
+                </div>
+                <div class="mt-3"><div class="bg-green-500 text-white text-center rounded py-1 w-24 text-xs">Simpan</div></div>
+            </div>
+        </div>
+        <p class="text-sm text-gray-600 mt-2">Form input perilaku memungkinkan wali kelas mencatat perilaku positif maupun negatif siswa secara harian dengan kategori dan deskripsi.</p>
+    </section>
+
+    <!-- 4. Wali Kelas - Scan QR Presensi -->
+    <section class="mb-10">
+        <h2 class="text-lg font-semibold mb-2">4. Wali Kelas — Scan QR Presensi</h2>
+        <div class="border-2 border-gray-400 rounded-lg flex bg-gray-50 h-64 overflow-hidden">
+            <div class="w-40 bg-green-700 text-white text-xs p-3 space-y-2">
+                <div class="font-bold mb-3">Menu Wali Kelas</div>
+                <div class="px-2 py-1">Dashboard</div>
+                <div class="px-2 py-1">Input Perilaku</div>
+                <div class="bg-green-600 rounded px-2 py-1">Presensi QR</div>
+                <div class="px-2 py-1">Rapor Karakter</div>
+            </div>
+            <div class="flex-1 p-4 flex flex-col items-center justify-center">
+                <div class="text-sm font-semibold mb-3">Scan QR Code Presensi</div>
+                <div class="w-40 h-40 border-2 border-dashed border-gray-400 flex items-center justify-center text-xs text-gray-400">Area Kamera / QR Scanner</div>
+                <div class="mt-2 text-xs text-gray-500">Arahkan kamera ke QR Code siswa</div>
+            </div>
+        </div>
+        <p class="text-sm text-gray-600 mt-2">Fitur presensi berbasis QR Code memudahkan wali kelas melakukan absensi harian dengan memindai kartu QR siswa.</p>
+    </section>
+
+    <!-- 5. Wali Kelas - Rapor Karakter -->
+    <section class="mb-10">
+        <h2 class="text-lg font-semibold mb-2">5. Wali Kelas — Rapor Karakter</h2>
+        <div class="border-2 border-gray-400 rounded-lg flex bg-gray-50 h-64 overflow-hidden">
+            <div class="w-40 bg-green-700 text-white text-xs p-3 space-y-2">
+                <div class="font-bold mb-3">Menu Wali Kelas</div>
+                <div class="px-2 py-1">Dashboard</div>
+                <div class="px-2 py-1">Input Perilaku</div>
+                <div class="px-2 py-1">Presensi QR</div>
+                <div class="bg-green-600 rounded px-2 py-1">Rapor Karakter</div>
+            </div>
+            <div class="flex-1 p-4 text-xs">
+                <div class="text-sm font-semibold mb-3">Rapor Karakter Siswa</div>
+                <table class="w-full border text-xs">
+                    <thead><tr class="bg-gray-200"><th class="border px-2 py-1">Nama</th><th class="border px-2 py-1">Positif</th><th class="border px-2 py-1">Negatif</th><th class="border px-2 py-1">Skor</th><th class="border px-2 py-1">Predikat</th></tr></thead>
+                    <tbody>
+                        <tr><td class="border px-2 py-1">Ahmad S.</td><td class="border px-2 py-1 text-center">12</td><td class="border px-2 py-1 text-center">2</td><td class="border px-2 py-1 text-center">85</td><td class="border px-2 py-1 text-center text-green-600">Baik</td></tr>
+                        <tr><td class="border px-2 py-1">Budi P.</td><td class="border px-2 py-1 text-center">8</td><td class="border px-2 py-1 text-center">5</td><td class="border px-2 py-1 text-center">70</td><td class="border px-2 py-1 text-center text-yellow-600">Cukup</td></tr>
+                    </tbody>
+                </table>
+                <div class="mt-3 flex gap-2">
+                    <div class="bg-blue-500 text-white rounded px-3 py-1">Cetak PDF</div>
+                    <div class="bg-gray-300 rounded px-3 py-1">Export Excel</div>
+                </div>
+            </div>
+        </div>
+        <p class="text-sm text-gray-600 mt-2">Rapor karakter menampilkan rekapitulasi perilaku siswa per semester dengan predikat otomatis dan opsi cetak PDF.</p>
+    </section>
+
+    <!-- 6. Kepala Sekolah - Dashboard -->
+    <section class="mb-10">
+        <h2 class="text-lg font-semibold mb-2">6. Kepala Sekolah — Dashboard</h2>
+        <div class="border-2 border-gray-400 rounded-lg flex bg-gray-50 h-64 overflow-hidden">
+            <div class="w-40 bg-indigo-700 text-white text-xs p-3 space-y-2">
+                <div class="font-bold mb-3">Menu Kepsek</div>
+                <div class="bg-indigo-600 rounded px-2 py-1">Dashboard</div>
+                <div class="px-2 py-1">Laporan Kelas</div>
+                <div class="px-2 py-1">Statistik</div>
+            </div>
+            <div class="flex-1 p-4 text-xs">
+                <div class="text-sm font-semibold mb-3">Dashboard Kepala Sekolah</div>
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div class="border rounded p-2 text-center"><div class="font-bold text-indigo-600">92%</div>Kehadiran Hari Ini</div>
+                    <div class="border rounded p-2 text-center"><div class="font-bold text-green-600">78%</div>Perilaku Positif</div>
+                </div>
+                <div class="border rounded p-3 h-20 flex items-center justify-center text-gray-400">Grafik Tren Perilaku per Kelas</div>
+            </div>
+        </div>
+        <p class="text-sm text-gray-600 mt-2">Dashboard kepala sekolah menyajikan ringkasan kehadiran dan perilaku seluruh kelas untuk monitoring dan pengambilan keputusan.</p>
+    </section>
+
+    <!-- 7. Orang Tua - Dashboard -->
+    <section class="mb-10">
+        <h2 class="text-lg font-semibold mb-2">7. Orang Tua — Dashboard</h2>
+        <div class="border-2 border-gray-400 rounded-lg bg-gray-50 h-64 p-4">
+            <div class="flex items-center gap-3 mb-4 border-b pb-3">
+                <div class="w-10 h-10 bg-orange-200 rounded-full flex items-center justify-center text-xs">Foto</div>
+                <div><div class="font-semibold text-sm">Ahmad Saputra</div><div class="text-xs text-gray-500">Kelas 4A — Semester Ganjil 2024/2025</div></div>
+            </div>
+            <div class="grid grid-cols-3 gap-3 text-xs mb-3">
+                <div class="border rounded p-2 text-center"><div class="font-bold text-green-600">12</div>Perilaku Positif</div>
+                <div class="border rounded p-2 text-center"><div class="font-bold text-red-600">2</div>Perilaku Negatif</div>
+                <div class="border rounded p-2 text-center"><div class="font-bold text-blue-600">95%</div>Kehadiran</div>
+            </div>
+            <div class="border rounded p-3 text-xs">
+                <div class="font-semibold mb-1">Catatan Terbaru:</div>
+                <div class="text-gray-600">• Membantu teman saat kegiatan kelompok (Positif)</div>
+                <div class="text-gray-600">• Aktif menjawab pertanyaan di kelas (Positif)</div>
+            </div>
+        </div>
+        <p class="text-sm text-gray-600 mt-2">Dashboard orang tua menampilkan ringkasan perilaku dan kehadiran anak secara real-time agar orang tua dapat memantau perkembangan karakter.</p>
+    </section>
+
+    <footer class="text-center text-xs text-gray-400 mt-8 border-t pt-4">
+        Dokumen Prototype SIKAPDIK — Lampiran Penelitian Design and Development
+    </footer>
+</body>
+</html>
